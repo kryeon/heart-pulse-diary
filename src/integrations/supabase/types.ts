@@ -14,7 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      entries: {
+        Row: {
+          cognitive_load: number | null
+          color_hex: string | null
+          content: string
+          created_at: string
+          emotion_score: number | null
+          entry_date: string
+          id: string
+          image_url: string | null
+          routines: Json | null
+          summary: string | null
+          unconscious: string | null
+          user_id: string
+        }
+        Insert: {
+          cognitive_load?: number | null
+          color_hex?: string | null
+          content: string
+          created_at?: string
+          emotion_score?: number | null
+          entry_date?: string
+          id?: string
+          image_url?: string | null
+          routines?: Json | null
+          summary?: string | null
+          unconscious?: string | null
+          user_id: string
+        }
+        Update: {
+          cognitive_load?: number | null
+          color_hex?: string | null
+          content?: string
+          created_at?: string
+          emotion_score?: number | null
+          entry_date?: string
+          id?: string
+          image_url?: string | null
+          routines?: Json | null
+          summary?: string | null
+          unconscious?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
