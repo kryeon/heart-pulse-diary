@@ -96,20 +96,70 @@ function CalendarPage() {
   );
 }
 
-function StatsPage({ entries, onBack, label }: { entries: any[]; onBack: () => void; label: string }) {
+function ReportSection({ entries, title, subtitle }: { entries: any[]; title: string; subtitle: string }) {
   const colors = entries.map((e) => e.color_hex).filter(Boolean);
   const aurora = colors.length
     ? `linear-gradient(120deg, ${colors.concat(colors).slice(0, Math.max(3, colors.length)).join(", ")})`
     : "linear-gradient(120deg, var(--lavender), var(--mint), var(--peach))";
 
-  const chartData = entries.map((e) => ({
-    date: e.entry_date.slice(5),
-    부하: e.cognitive_load,
-    감정: e.emotion_score,
-  }));
+  const chartData = entries
+    .slice()
+    .sort((a, b) => a.entry_date.localeCompare(b.entry_date))
+    .map((e) => ({
+      date: e.entry_date.slice(5),
+      부하: e.cognitive_load,
+      감정: e.emotion_score,
+    }));
 
   return (
-    <div className="space-y-5 animate-float-up">
+    <section className="space-y-3">
+      <div className="flex items-baseline justify-between px-1">
+        <h2 className="text-base font-bold">{title}</h2>
+        <span className="text-[11px] text-muted-foreground">{subtitle}</span>
+      </div>
+
+      <div
+        className="h-32 rounded-3xl animate-aurora shadow-[0_20px_60px_-20px_rgba(150,120,200,0.4)]"
+        style={{ backgroundImage: aurora }}
+      />
+
+      <div className="rounded-3xl bg-card border border-border p-4">
+        <p className="text-sm font-semibold mb-3 text-center">인지부하 · 감정 추이</p>
+        <div className="h-52 mx-auto" style={{ maxWidth: 520 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+              <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
+              <YAxis tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" width={28} domain={[0, 100]} />
+              <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid var(--border)", background: "var(--card)" }} />
+              <Line type="monotone" dataKey="부하" stroke="var(--lavender)" strokeWidth={2.5} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="감정" stroke="var(--mint)" strokeWidth={2.5} dot={{ r: 3 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex justify-center gap-4 mt-2 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "var(--lavender)" }} /> 부하</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "var(--mint)" }} /> 감정</span>
+        </div>
+      </div>
+
+      <div className="rounded-3xl bg-card border border-border p-4 text-center">
+        <p className="text-xs text-muted-foreground mb-1">기록한 날</p>
+        <p className="text-2xl font-bold">{entries.length}<span className="text-sm font-medium text-muted-foreground"> 일</span></p>
+      </div>
+    </section>
+  );
+}
+
+function StatsPage({ entries, onBack, label }: { entries: any[]; onBack: () => void; label: string }) {
+  // Weekly = last 7 days from today (within current data set)
+  const today = new Date();
+  const cutoff = new Date(today);
+  cutoff.setDate(cutoff.getDate() - 6);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const weekly = entries.filter((e) => e.entry_date >= cutoffStr);
+
+  return (
+    <div className="space-y-6 animate-float-up">
       <header className="flex items-center justify-between pt-2">
         <button onClick={onBack} className="text-sm text-muted-foreground inline-flex items-center gap-1">
           <ChevronLeft className="h-4 w-4" /> 달력
@@ -118,31 +168,10 @@ function StatsPage({ entries, onBack, label }: { entries: any[]; onBack: () => v
         <span className="w-12" />
       </header>
 
-      <div
-        className="h-44 rounded-3xl animate-aurora shadow-[0_20px_60px_-20px_rgba(150,120,200,0.4)]"
-        style={{ backgroundImage: aurora }}
-      />
-      <p className="text-center text-xs text-muted-foreground -mt-2">이번 달 마음 오로라</p>
-
-      <div className="rounded-3xl bg-card border border-border p-4">
-        <p className="text-sm font-semibold mb-3">인지부하 · 감정 추이</p>
-        <div className="h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
-              <YAxis tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
-              <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid var(--border)", background: "var(--card)" }} />
-              <Line type="monotone" dataKey="부하" stroke="var(--lavender)" strokeWidth={2.5} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="감정" stroke="var(--mint)" strokeWidth={2.5} dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="rounded-3xl bg-card border border-border p-5">
-        <p className="text-sm font-semibold mb-2">기록한 날</p>
-        <p className="text-3xl font-bold">{entries.length}<span className="text-base font-medium text-muted-foreground"> 일</span></p>
-      </div>
+      <ReportSection entries={weekly} title="주간 리포트" subtitle="최근 7일" />
+      <div className="h-px bg-border" />
+      <ReportSection entries={entries} title="월간 리포트" subtitle={label} />
     </div>
   );
 }
+

@@ -2,12 +2,12 @@
 @source "../src";
 @import "tw-animate-css";
 
-@import url("https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Quicksand:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&family=Nunito:wght@400;500;600;700;800&display=swap");
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Quicksand", "Gowun Dodum", system-ui, sans-serif;
+  --font-sans: "Nunito", "Jua", "Gowun Dodum", system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
