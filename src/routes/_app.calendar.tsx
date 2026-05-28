@@ -96,7 +96,6 @@ function CalendarPage() {
   );
 }
 
-function StatsPage({ entries, onBack, label }: { entries: any[]; onBack: () => void; label: string }) {
 function ReportSection({ entries, title, subtitle }: { entries: any[]; title: string; subtitle: string }) {
   const colors = entries.map((e) => e.color_hex).filter(Boolean);
   const aurora = colors.length
