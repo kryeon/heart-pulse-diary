@@ -62,7 +62,7 @@ function AnalysisPage() {
         backgroundColor: color,
       });
       const link = document.createElement("a");
-      link.download = `maeumgyeol-${entry.entry_date ?? "today"}.png`;
+      link.download = `maeumgyeol-${entry?.entry_date ?? "today"}.png`;
       link.href = dataUrl;
       link.click();
     } finally {
