@@ -2,12 +2,16 @@
 @source "../src";
 @import "tw-animate-css";
 
-@import url("https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&family=Nunito:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap");
+@import url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumSquareRoundR.css");
+@import url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumSquareRoundB.css");
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Nunito", "Jua", "Gowun Dodum", system-ui, sans-serif;
+  --font-sans: "Gowun Dodum", "NanumSquareRound", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --font-display: "Jua", "Gowun Dodum", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --font-support: "NanumSquareRound", "Gowun Dodum", "Apple SD Gothic Neo", system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -34,53 +38,56 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-lavender: var(--lavender);
-  --color-mint: var(--mint);
+  --color-sage: var(--sage);
+  --color-mint: var(--sage);
   --color-beige: var(--beige);
   --color-peach: var(--peach);
+  --color-coral: var(--coral);
 }
 
 :root {
   --radius: 1.25rem;
-  /* Pastel warm palette */
-  --background: oklch(0.985 0.012 90);          /* soft beige */
-  --foreground: oklch(0.32 0.04 290);           /* deep lavender ink */
-  --card: oklch(0.995 0.008 90);
-  --card-foreground: oklch(0.32 0.04 290);
-  --popover: oklch(0.995 0.008 90);
-  --popover-foreground: oklch(0.32 0.04 290);
-  --primary: oklch(0.78 0.09 300);              /* lavender */
-  --primary-foreground: oklch(0.99 0.005 300);
-  --secondary: oklch(0.92 0.05 145);            /* soft mint */
-  --secondary-foreground: oklch(0.35 0.05 160);
-  --muted: oklch(0.96 0.015 85);
-  --muted-foreground: oklch(0.55 0.03 280);
-  --accent: oklch(0.9 0.06 70);                 /* peach */
-  --accent-foreground: oklch(0.38 0.05 40);
+  /* Warm cozy Korean emotional palette */
+  --background: oklch(0.965 0.018 80);          /* cream-beige */
+  --foreground: oklch(0.36 0.035 60);           /* soft warm brown ink */
+  --card: oklch(0.985 0.012 80);
+  --card-foreground: oklch(0.36 0.035 60);
+  --popover: oklch(0.985 0.012 80);
+  --popover-foreground: oklch(0.36 0.035 60);
+  --primary: oklch(0.72 0.06 150);              /* muted sage green */
+  --primary-foreground: oklch(0.99 0.005 150);
+  --secondary: oklch(0.92 0.035 300);           /* lavender tint */
+  --secondary-foreground: oklch(0.4 0.05 290);
+  --muted: oklch(0.94 0.02 80);
+  --muted-foreground: oklch(0.55 0.03 60);
+  --accent: oklch(0.85 0.08 40);                /* coral / apricot */
+  --accent-foreground: oklch(0.38 0.06 30);
   --destructive: oklch(0.7 0.15 25);
   --destructive-foreground: oklch(0.99 0.005 0);
-  --border: oklch(0.92 0.02 290);
-  --input: oklch(0.95 0.015 290);
-  --ring: oklch(0.78 0.09 300);
+  --border: oklch(0.9 0.02 80);
+  --input: oklch(0.94 0.018 80);
+  --ring: oklch(0.72 0.06 150);
 
-  --lavender: oklch(0.82 0.08 300);
-  --mint: oklch(0.88 0.07 155);
-  --beige: oklch(0.95 0.025 85);
+  --lavender: oklch(0.86 0.06 300);
+  --sage: oklch(0.82 0.06 150);
+  --beige: oklch(0.95 0.025 80);
   --peach: oklch(0.88 0.07 55);
+  --coral: oklch(0.83 0.09 35);
 
-  --chart-1: oklch(0.78 0.09 300);
-  --chart-2: oklch(0.85 0.08 155);
-  --chart-3: oklch(0.88 0.07 55);
+  --chart-1: oklch(0.72 0.06 150);
+  --chart-2: oklch(0.78 0.07 300);
+  --chart-3: oklch(0.83 0.09 35);
   --chart-4: oklch(0.82 0.07 220);
-  --chart-5: oklch(0.85 0.08 25);
+  --chart-5: oklch(0.85 0.08 80);
 
-  --sidebar: oklch(0.985 0.012 90);
-  --sidebar-foreground: oklch(0.32 0.04 290);
-  --sidebar-primary: oklch(0.78 0.09 300);
-  --sidebar-primary-foreground: oklch(0.99 0.005 300);
-  --sidebar-accent: oklch(0.92 0.05 145);
-  --sidebar-accent-foreground: oklch(0.35 0.05 160);
-  --sidebar-border: oklch(0.92 0.02 290);
-  --sidebar-ring: oklch(0.78 0.09 300);
+  --sidebar: oklch(0.965 0.018 80);
+  --sidebar-foreground: oklch(0.36 0.035 60);
+  --sidebar-primary: oklch(0.72 0.06 150);
+  --sidebar-primary-foreground: oklch(0.99 0.005 150);
+  --sidebar-accent: oklch(0.92 0.035 300);
+  --sidebar-accent-foreground: oklch(0.4 0.05 290);
+  --sidebar-border: oklch(0.9 0.02 80);
+  --sidebar-ring: oklch(0.72 0.06 150);
 }
 
 .dark {
