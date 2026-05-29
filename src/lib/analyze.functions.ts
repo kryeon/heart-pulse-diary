@@ -24,14 +24,19 @@ function hslToHex(h: number, s: number, l: number) {
 
 export const analyzeEntry = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { content: string; image_url?: string | null }) =>
-    z.object({ content: z.string().min(1).max(5000), image_url: z.string().nullable().optional() }).parse(d),
+  .inputValidator((d: { content: string; image_url?: string | null; local_date?: string }) =>
+    z.object({
+      content: z.string().min(1).max(5000),
+      image_url: z.string().nullable().optional(),
+      local_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    }).parse(d),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    // Check today's entry first
-    const today = new Date().toISOString().slice(0, 10);
+    // Check today's entry first (use user's local date when provided)
+    const today = data.local_date ?? new Date().toISOString().slice(0, 10);
+
     const { data: existing } = await supabase
       .from("entries").select("*").eq("user_id", userId).eq("entry_date", today).maybeSingle();
     if (existing) return existing;
@@ -108,14 +113,18 @@ export const analyzeEntry = createServerFn({ method: "POST" })
     return inserted;
   });
 
-export const getTodayEntry = createServerFn({ method: "GET" })
+export const getTodayEntry = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const today = new Date().toISOString().slice(0, 10);
-    const { data } = await context.supabase
+  .inputValidator((d?: { local_date?: string }) =>
+    z.object({ local_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const today = data.local_date ?? new Date().toISOString().slice(0, 10);
+    const { data: row } = await context.supabase
       .from("entries").select("*").eq("user_id", context.userId).eq("entry_date", today).maybeSingle();
-    return data;
+    return row;
   });
+
 
 export const getEntriesInRange = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

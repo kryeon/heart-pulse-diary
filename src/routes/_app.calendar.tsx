@@ -97,10 +97,28 @@ function CalendarPage() {
 }
 
 function ReportSection({ entries, title, subtitle }: { entries: any[]; title: string; subtitle: string }) {
-  const colors = entries.map((e) => e.color_hex).filter(Boolean);
-  const aurora = colors.length
-    ? `linear-gradient(120deg, ${colors.concat(colors).slice(0, Math.max(3, colors.length)).join(", ")})`
-    : "linear-gradient(120deg, var(--lavender), var(--mint), var(--peach))";
+  // Weighted aurora by color frequency
+  const counts = new Map<string, number>();
+  entries.forEach((e) => {
+    if (!e.color_hex) return;
+    counts.set(e.color_hex, (counts.get(e.color_hex) ?? 0) + 1);
+  });
+  const total = Array.from(counts.values()).reduce((a, b) => a + b, 0);
+  let aurora: string;
+  if (total > 0) {
+    const sorted = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+    let acc = 0;
+    const stops: string[] = [];
+    sorted.forEach(([hex, n]) => {
+      const start = (acc / total) * 100;
+      acc += n;
+      const end = (acc / total) * 100;
+      stops.push(`${hex} ${start.toFixed(1)}%`, `${hex} ${end.toFixed(1)}%`);
+    });
+    aurora = `linear-gradient(120deg, ${stops.join(", ")})`;
+  } else {
+    aurora = "linear-gradient(120deg, var(--lavender), var(--mint), var(--peach))";
+  }
 
   const chartData = entries
     .slice()
@@ -119,7 +137,7 @@ function ReportSection({ entries, title, subtitle }: { entries: any[]; title: st
       </div>
 
       <div
-        className="h-32 rounded-3xl animate-aurora shadow-[0_20px_60px_-20px_rgba(150,120,200,0.4)]"
+        className="h-32 rounded-3xl shadow-[0_20px_60px_-20px_rgba(150,120,200,0.4)]"
         style={{ backgroundImage: aurora }}
       />
 
@@ -131,16 +149,17 @@ function ReportSection({ entries, title, subtitle }: { entries: any[]; title: st
               <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
               <YAxis tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" width={28} domain={[0, 100]} />
               <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid var(--border)", background: "var(--card)" }} />
-              <Line type="monotone" dataKey="부하" stroke="var(--lavender)" strokeWidth={2.5} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="감정" stroke="var(--mint)" strokeWidth={2.5} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="부하" stroke="#6D28D9" strokeWidth={3.5} dot={{ r: 3, fill: "#6D28D9" }} />
+              <Line type="monotone" dataKey="감정" stroke="#15803D" strokeWidth={3.5} dot={{ r: 3, fill: "#15803D" }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
         <div className="flex justify-center gap-4 mt-2 text-[11px] text-muted-foreground">
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "var(--lavender)" }} /> 부하</span>
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "var(--mint)" }} /> 감정</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "#6D28D9" }} /> 부하</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "#15803D" }} /> 감정</span>
         </div>
       </div>
+
 
       <div className="rounded-3xl bg-card border border-border p-4 text-center">
         <p className="text-xs text-muted-foreground mb-1">기록한 날</p>
