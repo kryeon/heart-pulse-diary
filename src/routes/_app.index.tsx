@@ -34,20 +34,16 @@ function InputPage() {
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // While checking today's entry, show a loading state — don't flash the input
-  if (isLoading || isFetching) {
+  // While checking today's entry, show a full-screen breathing signature-color loader
+  if (isLoading || isFetching || today) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-muted-foreground">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <p className="text-sm">오늘의 기록을 확인하고 있어요…</p>
+      <div className="min-h-[80vh] flex flex-col items-center justify-center gap-6">
+        <div className="h-24 w-24 rounded-full animate-signature-glow" />
+        <p className="text-sm text-muted-foreground animate-pulse">마음을 살피는 중…</p>
       </div>
     );
   }
 
-  if (today) {
-    navigate({ to: "/analysis", replace: true });
-    return null;
-  }
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
