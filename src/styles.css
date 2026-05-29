@@ -168,3 +168,20 @@
 .animate-blob-morph { animation: blob-morph 9s ease-in-out infinite; }
 .animate-blob-drift { animation: blob-drift 7s ease-in-out infinite; }
 
+@keyframes signature-glow {
+  0%, 100% {
+    background-color: color-mix(in oklab, var(--sage) 35%, var(--background));
+    box-shadow: 0 0 60px 20px color-mix(in oklab, var(--sage) 30%, transparent);
+  }
+  33% {
+    background-color: color-mix(in oklab, var(--coral) 30%, var(--background));
+    box-shadow: 0 0 60px 20px color-mix(in oklab, var(--coral) 28%, transparent);
+  }
+  66% {
+    background-color: color-mix(in oklab, var(--lavender) 35%, var(--background));
+    box-shadow: 0 0 60px 20px color-mix(in oklab, var(--lavender) 28%, transparent);
+  }
+}
+.animate-signature-glow { animation: signature-glow 5s ease-in-out infinite; }
+
+
