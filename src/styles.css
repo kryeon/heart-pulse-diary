@@ -115,10 +115,19 @@
 @layer base {
   * { border-color: var(--color-border); }
   html, body {
-    background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    background-color: var(--color-background);
+    background-image:
+      radial-gradient(at 15% 8%, color-mix(in oklab, var(--lavender) 45%, transparent) 0px, transparent 55%),
+      radial-gradient(at 85% 12%, color-mix(in oklab, var(--coral) 35%, transparent) 0px, transparent 55%),
+      radial-gradient(at 50% 95%, color-mix(in oklab, var(--sage) 35%, transparent) 0px, transparent 60%);
+    background-attachment: fixed;
+  }
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.005em;
   }
 }
 
