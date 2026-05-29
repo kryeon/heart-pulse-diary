@@ -29,76 +29,70 @@ function loadLabel(n: number) {
   return "많이 지쳤어요";
 }
 
-/** Smooth slider with spring-eased thumb feedback. */
+/** Smooth Radix slider with spring-eased thumb feedback. */
 function SmoothSlider({
   value,
   onChange,
   orientation = "horizontal",
-  length = 140,
+  length,
   label,
 }: {
   value: number;
   onChange: (n: number) => void;
   orientation?: "horizontal" | "vertical";
-  length?: number;
+  length: number;
   label: string;
 }) {
   const [active, setActive] = useState(false);
   const scale = useSpring(1, { stiffness: 400, damping: 22 });
 
   useEffect(() => {
-    scale.set(active ? 1.35 : 1);
+    scale.set(active ? 1.4 : 1);
   }, [active, scale]);
 
   const isV = orientation === "vertical";
 
   return (
-    <div
-      className={`flex items-center gap-2 ${isV ? "flex-col" : "flex-row"}`}
-      style={isV ? { height: length + 30 } : { width: length + 50 }}
+    <SliderPrimitive.Root
+      value={[value]}
+      onValueChange={(v) => onChange(v[0])}
+      min={20}
+      max={100}
+      step={1}
+      orientation={orientation}
+      onPointerDown={() => setActive(true)}
+      onPointerUp={() => setActive(false)}
+      onLostPointerCapture={() => setActive(false)}
+      aria-label={label}
+      className={`relative flex touch-none select-none items-center justify-center ${
+        isV ? "flex-col h-full w-5" : "h-5 w-full"
+      }`}
+      style={isV ? { height: length } : { width: length }}
     >
-      {isV && <span className="text-[10px] text-muted-foreground tracking-wider">{label} {value}</span>}
-      <SliderPrimitive.Root
-        value={[value]}
-        onValueChange={(v) => onChange(v[0])}
-        min={20}
-        max={100}
-        step={1}
-        orientation={orientation}
-        onPointerDown={() => setActive(true)}
-        onPointerUp={() => setActive(false)}
-        onLostPointerCapture={() => setActive(false)}
-        className={`relative flex touch-none select-none items-center justify-center ${
-          isV ? "h-full w-5 flex-col" : "w-full h-5"
+      <SliderPrimitive.Track
+        className={`relative grow overflow-hidden rounded-full bg-primary/15 ${
+          isV ? "w-1.5 h-full" : "h-1.5 w-full"
         }`}
-        style={isV ? { height: length } : { width: length }}
       >
-        <SliderPrimitive.Track
-          className={`relative grow overflow-hidden rounded-full bg-primary/20 ${
-            isV ? "w-1.5 h-full" : "h-1.5 w-full"
-          }`}
-        >
-          <SliderPrimitive.Range
-            className="absolute rounded-full"
-            style={{
-              background: "linear-gradient(135deg, var(--lavender), var(--peach))",
-              ...(isV ? { width: "100%" } : { height: "100%" }),
-            }}
-          />
-        </SliderPrimitive.Track>
-        <SliderPrimitive.Thumb asChild>
-          <motion.div
-            style={{ scale }}
-            className="block h-5 w-5 rounded-full bg-white border-2 border-primary/60 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-grab active:cursor-grabbing"
-          />
-        </SliderPrimitive.Thumb>
-      </SliderPrimitive.Root>
-      {!isV && <span className="text-[10px] text-muted-foreground tracking-wider">{label} {value}</span>}
-    </div>
+        <SliderPrimitive.Range
+          className="absolute rounded-full"
+          style={{
+            background: "linear-gradient(135deg, var(--lavender), var(--peach))",
+            ...(isV ? { width: "100%" } : { height: "100%" }),
+          }}
+        />
+      </SliderPrimitive.Track>
+      <SliderPrimitive.Thumb asChild>
+        <motion.div
+          style={{ scale }}
+          className="block h-5 w-5 rounded-full bg-white border-2 border-primary/60 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-grab active:cursor-grabbing active:shadow-lg"
+        />
+      </SliderPrimitive.Thumb>
+    </SliderPrimitive.Root>
   );
 }
 
-/** A wispy, irregular cloud built from multiple offset blurred blobs. */
+/** A wispy, organically morphing cloud — irregular border-radius keyframes + drift. */
 function CloudBlob({
   color,
   spread,
@@ -108,69 +102,89 @@ function CloudBlob({
   spread: MotionValue<number>;
   intensity: MotionValue<number>;
 }) {
-  const size = useTransform(spread, (s) => 140 + s * 1.6);
-  const blur = useTransform(spread, (s) => Math.max(2, (s - 20) * 0.45));
+  const size = useTransform(spread, (s) => 120 + s * 1.7);
+  const blur = useTransform(spread, (s) => Math.max(2, (s - 20) * 0.5));
   const opacity = useTransform(intensity, (i) => 0.35 + (i / 100) * 0.6);
-  const haloBlur = useTransform(spread, (s) => Math.max(18, (s - 10) * 0.7 + 18));
+  const haloBlur = useTransform(spread, (s) => Math.max(20, (s - 10) * 0.8 + 20));
   const haloOpacity = useTransform(intensity, (i) => 0.15 + (i / 100) * 0.3);
+
+  // Organic border-radius morph keyframes (used by multiple puffs)
+  const morphRadii = [
+    "30% 70% 70% 30% / 30% 30% 70% 70%",
+    "60% 40% 30% 70% / 60% 30% 70% 40%",
+    "45% 55% 65% 35% / 50% 65% 35% 50%",
+    "70% 30% 50% 50% / 40% 60% 40% 60%",
+    "30% 70% 70% 30% / 30% 30% 70% 70%",
+  ];
 
   // Irregular cloud puffs — offsets relative to center.
   const puffs = [
-    { x: 0, y: 0, scale: 1.0, delay: 0 },
-    { x: -55, y: -10, scale: 0.7, delay: 0.7 },
-    { x: 50, y: -20, scale: 0.65, delay: 1.2 },
-    { x: -30, y: 30, scale: 0.55, delay: 0.4 },
-    { x: 40, y: 35, scale: 0.6, delay: 1.5 },
-    { x: 0, y: -45, scale: 0.5, delay: 0.9 },
+    { x: 0, y: 0, scale: 1.0, dur: 11 },
+    { x: -55, y: -10, scale: 0.72, dur: 13 },
+    { x: 50, y: -20, scale: 0.68, dur: 14 },
+    { x: -30, y: 30, scale: 0.58, dur: 12 },
+    { x: 40, y: 35, scale: 0.62, dur: 15 },
+    { x: 0, y: -45, scale: 0.5, dur: 10 },
   ];
 
   return (
-    <div className="relative w-[260px] h-[260px] grid place-items-center pointer-events-none">
+    <div className="relative w-full h-full grid place-items-center pointer-events-none">
       {/* outer halo */}
       <motion.div
-        className="absolute rounded-full animate-blob-drift"
+        className="absolute"
         style={{
           width: size,
           height: size,
           backgroundColor: color,
           filter: useTransform(haloBlur, (b) => `blur(${b}px)`),
           opacity: haloOpacity,
-          scale: 1.25,
+          scale: 1.3,
+          borderRadius: "50%",
         }}
+        animate={{ x: [0, -6, 5, 0], y: [0, 4, -5, 0] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
       />
       {puffs.map((p, i) => (
         <motion.div
           key={i}
-          className="absolute animate-blob-morph"
+          className="absolute"
           style={{
             width: useTransform(size, (s) => s * p.scale),
             height: useTransform(size, (s) => s * p.scale),
-            x: p.x,
-            y: p.y,
             backgroundColor: color,
             opacity,
             filter: useTransform(blur, (b) => `blur(${b}px)`),
-            animationDelay: `${p.delay}s`,
           }}
           animate={{
-            x: [p.x, p.x + 6, p.x - 4, p.x],
-            y: [p.y, p.y - 5, p.y + 4, p.y],
+            x: [p.x, p.x + 8, p.x - 6, p.x + 4, p.x],
+            y: [p.y, p.y - 7, p.y + 5, p.y - 3, p.y],
+            borderRadius: morphRadii,
+            rotate: [0, 6, -4, 3, 0],
           }}
-          transition={{ duration: 6 + i * 0.4, repeat: Infinity, ease: "easeInOut" }}
+          transition={{
+            duration: p.dur,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: i * 0.3,
+          }}
         />
       ))}
       {/* soft highlight */}
       <motion.div
-        className="absolute rounded-full animate-blob-morph"
+        className="absolute"
         style={{
           width: useTransform(size, (s) => s * 0.45),
           height: useTransform(size, (s) => s * 0.45),
-          y: -20,
-          x: -15,
           backgroundColor: "#ffffff",
           opacity: 0.22,
           filter: useTransform(blur, (b) => `blur(${b * 0.6 + 8}px)`),
         }}
+        animate={{
+          x: [-15, -10, -18, -15],
+          y: [-20, -25, -18, -20],
+          borderRadius: morphRadii,
+        }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
       />
     </div>
   );
@@ -184,7 +198,6 @@ function AnalysisPage() {
   const [spread, setSpread] = useState(60);
   const [intensity, setIntensity] = useState(70);
 
-  // Smooth motion values driven by state, used to animate the cloud at 60fps.
   const spreadMV = useSpring(spread, { stiffness: 120, damping: 20 });
   const intensityMV = useSpring(intensity, { stiffness: 120, damping: 20 });
 
@@ -223,10 +236,10 @@ function AnalysisPage() {
     }
   }
 
-  // Cloud stage: 320 tall, cloud centered. Sliders offset 50px from center
-  // toward Quadrant II (up and left).
-  const STAGE = 320;
-  const CENTER = STAGE / 2;
+  // Square frame layout: cloud centered inside square, right edge has vertical
+  // slider, bottom edge has horizontal slider — "ㄴ" reversed / mirrored shape.
+  const SQUARE = 300;
+  const GUTTER = 28; // distance from square edge to slider rail
 
   return (
     <div className="space-y-8 animate-float-up">
@@ -235,49 +248,63 @@ function AnalysisPage() {
         <h1 className="mt-1 text-2xl font-bold">오늘 마음의 빛</h1>
       </header>
 
-      <div className="relative mx-auto" style={{ width: "100%", maxWidth: 360, height: STAGE }}>
-        {/* Centered cloud */}
+      {/* Outer stage gives room for sliders on the right and bottom edges */}
+      <div
+        className="relative mx-auto"
+        style={{ width: SQUARE + GUTTER + 24, height: SQUARE + GUTTER + 32 }}
+      >
+        {/* Square frame */}
         <div
-          className="absolute"
-          style={{ left: CENTER, top: CENTER, transform: "translate(-50%, -50%)" }}
+          className="absolute top-0 left-0 rounded-3xl border border-primary/15 bg-gradient-to-br from-background to-secondary/20"
+          style={{ width: SQUARE, height: SQUARE }}
         >
-          <CloudBlob color={color} spread={spreadMV} intensity={intensityMV} />
+          {/* Cloud centered inside square */}
+          <div className="absolute inset-0">
+            <CloudBlob color={color} spread={spreadMV} intensity={intensityMV} />
+          </div>
         </div>
 
-        {/* Vertical slider — 50px above center, centered horizontally on cloud */}
+        {/* Right-edge vertical slider — intensity (강도) */}
         <div
-          className="absolute"
-          style={{ left: CENTER, top: CENTER - 50, transform: "translate(-50%, -100%)" }}
+          className="absolute flex flex-col items-center gap-2"
+          style={{ left: SQUARE + GUTTER - 10, top: 0, height: SQUARE }}
         >
           <SmoothSlider
             orientation="vertical"
-            value={spread}
-            onChange={setSpread}
-            length={110}
-            label="퍼짐"
-          />
-        </div>
-
-        {/* Horizontal slider — 50px left of center, centered vertically on cloud */}
-        <div
-          className="absolute"
-          style={{ left: CENTER - 50, top: CENTER, transform: "translate(-100%, -50%)" }}
-        >
-          <SmoothSlider
-            orientation="horizontal"
             value={intensity}
             onChange={setIntensity}
-            length={110}
+            length={SQUARE}
             label="강도"
           />
         </div>
 
-        <p
-          className="absolute text-[10px] text-muted-foreground font-mono"
-          style={{ left: CENTER, bottom: 0, transform: "translateX(-50%)" }}
+        {/* Bottom-edge horizontal slider — spread (퍼짐) */}
+        <div
+          className="absolute flex items-center gap-2"
+          style={{ top: SQUARE + GUTTER - 10, left: 0, width: SQUARE }}
         >
-          {color}
-        </p>
+          <SmoothSlider
+            orientation="horizontal"
+            value={spread}
+            onChange={setSpread}
+            length={SQUARE}
+            label="퍼짐"
+          />
+        </div>
+
+        {/* Axis labels */}
+        <span
+          className="absolute text-[10px] text-muted-foreground tracking-wider"
+          style={{ left: SQUARE + GUTTER + 12, top: -2 }}
+        >
+          강도
+        </span>
+        <span
+          className="absolute text-[10px] text-muted-foreground tracking-wider"
+          style={{ left: -2, top: SQUARE + GUTTER + 12 }}
+        >
+          퍼짐 · {color}
+        </span>
       </div>
 
       {/* Square emotion card */}
