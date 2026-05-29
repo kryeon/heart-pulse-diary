@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeEntry, getTodayEntry } from "@/lib/analyze.functions";
 import { useQuery } from "@tanstack/react-query";
