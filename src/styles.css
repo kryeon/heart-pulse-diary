@@ -120,9 +120,11 @@
     -webkit-font-smoothing: antialiased;
     background-color: var(--color-background);
     background-image:
-      radial-gradient(at 15% 8%, color-mix(in oklab, var(--lavender) 45%, transparent) 0px, transparent 55%),
-      radial-gradient(at 85% 12%, color-mix(in oklab, var(--coral) 35%, transparent) 0px, transparent 55%),
-      radial-gradient(at 50% 95%, color-mix(in oklab, var(--sage) 35%, transparent) 0px, transparent 60%);
+      radial-gradient(ellipse 60% 50% at 12% 8%, color-mix(in oklab, var(--sage) 55%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 55% 45% at 88% 18%, color-mix(in oklab, var(--coral) 50%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 65% 50% at 90% 85%, color-mix(in oklab, var(--sage) 45%, transparent) 0%, transparent 75%),
+      radial-gradient(ellipse 60% 45% at 8% 90%, color-mix(in oklab, var(--peach) 45%, transparent) 0%, transparent 75%),
+      radial-gradient(ellipse 70% 50% at 50% 50%, color-mix(in oklab, var(--lavender) 30%, transparent) 0%, transparent 80%);
     background-attachment: fixed;
   }
   h1, h2, h3, h4, .font-display {
