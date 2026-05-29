@@ -34,7 +34,14 @@ function InputPage() {
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // While checking today's entry, show a full-screen breathing signature-color loader
+  // Navigate to analysis only after the today-check completes
+  useEffect(() => {
+    if (!isLoading && !isFetching && today) {
+      navigate({ to: "/analysis", replace: true });
+    }
+  }, [isLoading, isFetching, today, navigate]);
+
+  // While checking (or about to redirect), show a full-screen breathing signature loader
   if (isLoading || isFetching || today) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center gap-6">
