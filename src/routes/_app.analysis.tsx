@@ -190,10 +190,20 @@ function CloudBlob({
   );
 }
 
+function localDateStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function AnalysisPage() {
   const fetchToday = useServerFn(getTodayEntry);
-  const { data: entry, isLoading } = useQuery({ queryKey: ["today"], queryFn: () => fetchToday() });
+  const localDate = localDateStr();
+  const { data: entry, isLoading } = useQuery({
+    queryKey: ["today", localDate],
+    queryFn: () => fetchToday({ data: { local_date: localDate } }),
+  });
   const navigate = useNavigate();
+
 
   const [spread, setSpread] = useState(60);
   const [intensity, setIntensity] = useState(70);

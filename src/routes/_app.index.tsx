@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeEntry, getTodayEntry } from "@/lib/analyze.functions";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles, ImagePlus } from "lucide-react";
+import { Sparkles, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/")({
@@ -11,19 +11,40 @@ export const Route = createFileRoute("/_app/")({
   component: InputPage,
 });
 
+function localDateStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 function InputPage() {
   const navigate = useNavigate();
   const router = useRouter();
   const fetchToday = useServerFn(getTodayEntry);
   const analyze = useServerFn(analyzeEntry);
-  const { data: today, isLoading } = useQuery({ queryKey: ["today"], queryFn: () => fetchToday() });
+  const localDate = localDateStr();
+  const { data: today, isLoading, isFetching } = useQuery({
+    queryKey: ["today", localDate],
+    queryFn: () => fetchToday({ data: { local_date: localDate } }),
+  });
 
   const [content, setContent] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // If already analyzed today, jump straight to analysis page
-  if (!isLoading && today) {
+  // While checking today's entry, show a loading state — don't flash the input
+  if (isLoading || isFetching) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-muted-foreground">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <p className="text-sm">오늘의 기록을 확인하고 있어요…</p>
+      </div>
+    );
+  }
+
+  if (today) {
     navigate({ to: "/analysis", replace: true });
     return null;
   }
@@ -41,7 +62,7 @@ function InputPage() {
     if (!content.trim()) { toast.error("오늘의 마음을 한 줄이라도 적어주세요"); return; }
     setBusy(true);
     try {
-      await analyze({ data: { content: content.trim(), image_url: imageDataUrl } });
+      await analyze({ data: { content: content.trim(), image_url: imageDataUrl, local_date: localDate } });
       await router.invalidate();
       navigate({ to: "/analysis" });
     } catch (e: any) {
