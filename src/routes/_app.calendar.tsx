@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, BarChart3 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { motion } from "framer-motion";
 
 export const Route = createFileRoute("/_app/calendar")({
   head: () => ({ meta: [{ title: "달력 · 마음결" }] }),
@@ -97,27 +98,43 @@ function CalendarPage() {
 }
 
 function ReportSection({ entries, title, subtitle }: { entries: any[]; title: string; subtitle: string }) {
-  // Weighted aurora by color frequency
+  // Weighted aurora — energy intensity, not hard borders
   const counts = new Map<string, number>();
   entries.forEach((e) => {
     if (!e.color_hex) return;
     counts.set(e.color_hex, (counts.get(e.color_hex) ?? 0) + 1);
   });
   const total = Array.from(counts.values()).reduce((a, b) => a + b, 0);
-  let aurora: string;
+
+  // Build a soft, blurred multi-layer aurora. Each color gets an elliptical glow
+  // sized by its frequency ratio — energy radiates rather than abruptly stops.
+  let auroraLayers = "";
+  let baseGradient = "linear-gradient(120deg, var(--lavender), var(--sage), var(--peach))";
   if (total > 0) {
     const sorted = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
-    let acc = 0;
     const stops: string[] = [];
-    sorted.forEach(([hex, n]) => {
+    let acc = 0;
+    const layers: string[] = [];
+    sorted.forEach(([hex, n], idx) => {
+      const ratio = n / total;
       const start = (acc / total) * 100;
       acc += n;
       const end = (acc / total) * 100;
-      stops.push(`${hex} ${start.toFixed(1)}%`, `${hex} ${end.toFixed(1)}%`);
+      const mid = (start + end) / 2;
+      // Soft linear stops with wide transitions (blend zones outside hard edges)
+      stops.push(`${hex}00 ${Math.max(0, start - 10).toFixed(1)}%`);
+      stops.push(`${hex} ${mid.toFixed(1)}%`);
+      stops.push(`${hex}00 ${Math.min(100, end + 10).toFixed(1)}%`);
+      // Radial energy bloom — wider for more frequent colors
+      const cx = mid;
+      const cy = 30 + (idx % 2) * 40;
+      const radius = 35 + ratio * 60;
+      layers.push(
+        `radial-gradient(ellipse ${radius}% ${radius * 0.85}% at ${cx}% ${cy}%, ${hex}cc 0%, ${hex}55 35%, transparent 75%)`
+      );
     });
-    aurora = `linear-gradient(120deg, ${stops.join(", ")})`;
-  } else {
-    aurora = "linear-gradient(120deg, var(--lavender), var(--mint), var(--peach))";
+    baseGradient = `linear-gradient(110deg, ${stops.join(", ")})`;
+    auroraLayers = layers.join(", ");
   }
 
   const chartData = entries
@@ -136,12 +153,44 @@ function ReportSection({ entries, title, subtitle }: { entries: any[]; title: st
         <span className="text-[11px] text-muted-foreground">{subtitle}</span>
       </div>
 
-      <div
-        className="h-32 rounded-3xl shadow-[0_20px_60px_-20px_rgba(150,120,200,0.4)]"
-        style={{ backgroundImage: aurora }}
-      />
+      <div className="relative h-40 rounded-3xl overflow-hidden shadow-[0_20px_60px_-20px_rgba(150,120,200,0.35)]">
+        {/* Base flowing gradient — slow wave */}
+        <motion.div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: baseGradient,
+            backgroundSize: "260% 260%",
+            filter: "blur(18px) saturate(1.05)",
+          }}
+          animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+          transition={{ duration: 14, ease: "easeInOut", repeat: Infinity }}
+        />
+        {/* Energy bloom layer */}
+        {auroraLayers && (
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: auroraLayers,
+              backgroundSize: "220% 220%",
+              filter: "blur(24px)",
+              mixBlendMode: "screen",
+              opacity: 0.95,
+            }}
+            animate={{ backgroundPosition: ["20% 30%", "80% 70%", "20% 30%"] }}
+            transition={{ duration: 18, ease: "easeInOut", repeat: Infinity }}
+          />
+        )}
+        {/* Subtle highlight wash */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.25) 0%, transparent 60%)",
+          }}
+        />
+      </div>
 
-      <div className="rounded-3xl bg-card border border-border p-4">
+      <div className="rounded-3xl bg-card/80 backdrop-blur-sm border border-border p-4">
         <p className="text-sm font-semibold mb-3 text-center">인지부하 · 감정 추이</p>
         <div className="h-52 mx-auto" style={{ maxWidth: 520 }}>
           <ResponsiveContainer width="100%" height="100%">
@@ -149,19 +198,35 @@ function ReportSection({ entries, title, subtitle }: { entries: any[]; title: st
               <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
               <YAxis tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" width={28} domain={[0, 100]} />
               <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid var(--border)", background: "var(--card)" }} />
-              <Line type="monotone" dataKey="부하" stroke="#6D28D9" strokeWidth={3.5} dot={{ r: 3, fill: "#6D28D9" }} />
-              <Line type="monotone" dataKey="감정" stroke="#15803D" strokeWidth={3.5} dot={{ r: 3, fill: "#15803D" }} />
+              <Line
+                type="monotone"
+                dataKey="부하"
+                stroke="#7B88C3"
+                strokeWidth={3}
+                strokeLinecap="round"
+                dot={{ r: 3.5, fill: "#A8B2DB", stroke: "#7B88C3", strokeWidth: 1.5 }}
+                activeDot={{ r: 5, fill: "#A8B2DB", stroke: "#7B88C3", strokeWidth: 2 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="감정"
+                stroke="#8FB89A"
+                strokeWidth={3}
+                strokeLinecap="round"
+                dot={{ r: 3.5, fill: "#B7D3BF", stroke: "#8FB89A", strokeWidth: 1.5 }}
+                activeDot={{ r: 5, fill: "#B7D3BF", stroke: "#8FB89A", strokeWidth: 2 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
         <div className="flex justify-center gap-4 mt-2 text-[11px] text-muted-foreground">
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "#6D28D9" }} /> 부하</span>
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "#15803D" }} /> 감정</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "#7B88C3" }} /> 부하</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "#8FB89A" }} /> 감정</span>
         </div>
       </div>
 
 
-      <div className="rounded-3xl bg-card border border-border p-4 text-center">
+      <div className="rounded-3xl bg-card/80 backdrop-blur-sm border border-border p-4 text-center">
         <p className="text-xs text-muted-foreground mb-1">기록한 날</p>
         <p className="text-2xl font-bold">{entries.length}<span className="text-sm font-medium text-muted-foreground"> 일</span></p>
       </div>
