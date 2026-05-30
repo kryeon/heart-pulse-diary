@@ -46,6 +46,13 @@ export const analyzeEntry = createServerFn({ method: "POST" })
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
     const sys = `당신은 따뜻한 한국어 감정 분석가입니다. 사용자의 일기를 분석해 JSON으로 답하세요.
+
+[언어 규칙 - 매우 중요]
+- 모든 응답은 반드시 한국어로 작성한다.
+- 영어 단어, 영어 문장, 영어 제목, 영어 감정명을 절대 사용하지 않는다.
+- 사용자에게 보여지는 모든 텍스트(summary, unconscious, routines.title, routines.description)는 100% 자연스러운 한국어로 출력한다.
+- 숫자, HEX 색상, hue 값만 숫자로 출력한다.
+
 필드:
 - summary: 한 줄 요약(한국어, 25자 이내)
 - cognitive_load: 인지부하도(0-100 정수, 글이 복잡하고 걱정 많을수록 높음)

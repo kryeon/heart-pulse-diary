@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { getOrCreateUserId } from "@/lib/userId";
+import { koreanizeTexts } from "@/lib/koreanize.functions";
+import { needsKoreanization } from "@/lib/koreanize";
 
 export const Route = createFileRoute("/_app/chat")({
   component: ChatPage,
@@ -31,6 +34,7 @@ const MAX_MESSAGES = 5;
 
 function ChatPage() {
   const userId = getOrCreateUserId();
+  const koreanize = useServerFn(koreanizeTexts);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [sentCount, setSentCount] = useState(0);
@@ -42,6 +46,25 @@ function ChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const today = new Date().toISOString().slice(0, 10);
+
+  async function ensureKoreanFields(d: N8nResponse): Promise<N8nResponse> {
+    const items: Record<string, string> = {};
+    if (typeof d.reply === "string" && needsKoreanization(d.reply)) items.reply = d.reply;
+    if (typeof d.opening_summary === "string" && needsKoreanization(d.opening_summary))
+      items.opening_summary = d.opening_summary;
+    if (typeof d.suggested_action === "string" && needsKoreanization(d.suggested_action))
+      items.suggested_action = d.suggested_action;
+    if (typeof d.reflection_question === "string" && needsKoreanization(d.reflection_question))
+      items.reflection_question = d.reflection_question;
+    if (Object.keys(items).length === 0) return d;
+    try {
+      const translated = await koreanize({ data: { items } });
+      return { ...d, ...translated };
+    } catch {
+      return d;
+    }
+  }
+
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -66,7 +89,8 @@ function ChatPage() {
           }),
         });
         if (!res.ok) throw new Error("init failed");
-        const data: N8nResponse = await res.json();
+        const raw: N8nResponse = await res.json();
+        const data = await ensureKoreanFields(raw);
         const reply =
           data.reply ??
           (data.has_today_record === false
@@ -116,7 +140,8 @@ function ChatPage() {
         }),
       });
       if (!res.ok) throw new Error("chat failed");
-      const data: N8nResponse = await res.json();
+      const raw: N8nResponse = await res.json();
+      const data = await ensureKoreanFields(raw);
       setMessages((m) => [
         ...m,
         {

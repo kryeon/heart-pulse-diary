@@ -12,6 +12,8 @@ import { getEmotionResult, type EmotionResult } from "@/lib/emotionResult";
 import { SynclrWordmark } from "@/components/AppShell";
 import { TriangleBack } from "@/components/TriangleBack";
 import { useAuth } from "@/lib/auth-context";
+import { koreanizeTexts } from "@/lib/koreanize.functions";
+import { needsKoreanization } from "@/lib/koreanize";
 
 export const Route = createFileRoute("/_app/analysis")({
   head: () => ({ meta: [{ title: "오늘의 분석 · Syncl\u0023r" }] }),
@@ -325,14 +327,52 @@ function AnalysisPage() {
     if (!isLoading && !entry && !emotionResult) navigate({ to: "/", replace: true });
   }, [isLoading, entry, emotionResult, navigate]);
 
+  const koreanize = useServerFn(koreanizeTexts);
+  const [koOverrides, setKoOverrides] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const src: any = entry ?? (emotionResult ? n8nResultToEntry(emotionResult, targetDate) : null);
+    if (!src) return;
+    const items: Record<string, string> = {};
+    if (typeof src.summary === "string" && needsKoreanization(src.summary)) items.summary = src.summary;
+    if (typeof src.unconscious === "string" && needsKoreanization(src.unconscious)) items.unconscious = src.unconscious;
+    const routines = Array.isArray(src.routines) ? src.routines : [];
+    routines.forEach((r: any, i: number) => {
+      if (typeof r?.title === "string" && needsKoreanization(r.title)) items[`routine_title_${i}`] = r.title;
+      if (typeof r?.description === "string" && needsKoreanization(r.description)) items[`routine_desc_${i}`] = r.description;
+    });
+    if (Object.keys(items).length === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const t = await koreanize({ data: { items } });
+        if (!cancelled) setKoOverrides(t);
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [entry, emotionResult, targetDate, koreanize]);
+
   if (isLoading || (!entry && !emotionResult)) {
     return <div className="text-center text-muted-foreground text-sm pt-20">불러오는 중…</div>;
   }
 
   // Build a synthetic entry from n8n result so we can reuse the original design
   const synthetic = !entry && emotionResult ? n8nResultToEntry(emotionResult, targetDate) : null;
-  const view = (entry ?? synthetic) as any;
-  if (!view) return null;
+  const baseView = (entry ?? synthetic) as any;
+  if (!baseView) return null;
+  const view = {
+    ...baseView,
+    summary: koOverrides.summary ?? baseView.summary,
+    unconscious: koOverrides.unconscious ?? baseView.unconscious,
+    routines: Array.isArray(baseView.routines)
+      ? baseView.routines.map((r: any, i: number) => ({
+          ...r,
+          title: koOverrides[`routine_title_${i}`] ?? r?.title,
+          description: koOverrides[`routine_desc_${i}`] ?? r?.description,
+        }))
+      : baseView.routines,
+  };
 
   const color = view.color_hex ?? "#c8b6ff";
   const fg = readableOn(color);
