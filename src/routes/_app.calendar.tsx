@@ -140,6 +140,7 @@ function CalendarPage() {
 }
 
 const EMOTION_KO: Record<string, string> = {
+  positive: "긍정", negative: "부정", mixed: "복합",
   anxiety: "불안", anxious: "불안", worry: "걱정", fear: "두려움", scared: "두려움",
   sadness: "슬픔", sad: "슬픔", grief: "비탄", lonely: "외로움", loneliness: "외로움",
   anger: "분노", angry: "분노", frustration: "좌절", frustrated: "좌절", irritation: "짜증",
@@ -150,7 +151,7 @@ const EMOTION_KO: Record<string, string> = {
   confidence: "자신감", confident: "자신감", pride: "뿌듯함", proud: "뿌듯함",
   confusion: "혼란", confused: "혼란", boredom: "지루함", bored: "지루함",
   shame: "수치심", guilt: "죄책감", disappointment: "실망", disappointed: "실망",
-  neutral: "보통",
+  neutral: "중립",
 };
 
 const DOMAIN_KO: Record<string, string> = {
