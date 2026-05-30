@@ -306,7 +306,10 @@ function AnalysisPage() {
     const sync = () => {
       const latest = getEmotionResult();
       const owner = (latest as any)?.user_id;
-      setEmotionResultState(!owner || owner === session?.user.id ? latest : null);
+      const resultDate = (latest as any)?.entry_date ?? (latest as any)?.calendar_marker?.date;
+      const sameUser = !owner || owner === session?.user.id;
+      const sameDate = !resultDate || resultDate === targetDate;
+      setEmotionResultState(sameUser && sameDate ? latest : null);
     };
     sync();
     if (typeof window === "undefined") return;
@@ -316,7 +319,7 @@ function AnalysisPage() {
       window.removeEventListener("emotionResult:update", sync);
       window.removeEventListener("storage", sync);
     };
-  }, [session?.user.id]);
+  }, [session?.user.id, targetDate]);
 
   useEffect(() => {
     if (!isLoading && !entry && !emotionResult) navigate({ to: "/", replace: true });
