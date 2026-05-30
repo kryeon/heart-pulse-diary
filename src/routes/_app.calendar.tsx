@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, BarChart3 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { motion } from "framer-motion";
 import { TriangleBack } from "@/components/TriangleBack";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/_app/calendar")({
   head: () => ({ meta: [{ title: "달력 · Syncl\u0023r" }] }),
@@ -24,6 +25,7 @@ function monthBounds(year: number, month: number) {
 }
 
 function CalendarPage() {
+  const { session } = useAuth();
   const today = new Date();
   const [cursor, setCursor] = useState({ y: today.getFullYear(), m: today.getMonth() });
   const [showStats, setShowStats] = useState(false);
@@ -36,6 +38,8 @@ function CalendarPage() {
   const { data: entries = [] } = useQuery({
     queryKey: ["range", from, to],
     queryFn: () => fetchRange({ data: { from, to } }),
+    enabled: !!session?.access_token,
+    retry: false,
   });
 
   const byDate = useMemo(() => {
@@ -156,10 +160,13 @@ function ReportSection({
   title: string; periodLabel: string; from: string; to: string;
   onPrev: () => void; onNext: () => void;
 }) {
+  const { session } = useAuth();
   const fetchRange = useServerFn(getEntriesInRange);
   const { data: entries = [] } = useQuery({
     queryKey: ["report-range", from, to],
     queryFn: () => fetchRange({ data: { from, to } }),
+    enabled: !!session?.access_token,
+    retry: false,
   });
 
   const counts = new Map<string, number>();
