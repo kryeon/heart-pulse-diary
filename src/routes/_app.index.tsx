@@ -88,7 +88,7 @@ function InputPage() {
 
   const handleAnalyze = async () => {
     if (!content.trim()) {
-      toast.error("오늘의 마음을 한 줄이라도 적어주세요");
+      toast.error("오늘의 마음을 한 줄이라도 적어주세요.");
       return;
     }
     setBusy(true);
@@ -96,19 +96,20 @@ function InputPage() {
       const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
       if (!webhookUrl) throw new Error("VITE_N8N_WEBHOOK_URL 환경변수가 설정되지 않았습니다");
 
-      let profile: unknown = null;
-      try { profile = await fetchProfile(); } catch {}
-
       const sleep_hours =
         sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : 7;
       const energy_level = energyLevel ?? 3;
 
       const body = {
-        user_id: user?.id ?? null,
-        entry_date: localDate,
+        user_id: "u002",
+        entry_date: new Date().toISOString().slice(0, 10),
         text: content.trim(),
-        image_url: imageDataUrl ?? "",
-        profile,
+        image_url: "",
+        profile: {
+          nickname: "ewha",
+          email: "ewha@ewha.ac.kr",
+          preferred_tone: "calm",
+        },
         sleep_hours,
         energy_level,
       };
@@ -120,8 +121,13 @@ function InputPage() {
       });
       if (!res.ok) throw new Error(`분석 요청 실패: ${res.status} ${res.statusText}`);
 
-      const result = (await res.json()) as EmotionResult;
+      const result = (await res.json()) as EmotionResult & { success?: boolean; entry_id?: string };
+      if (result?.success === false) throw new Error("분석에 실패했어요");
+
       setEmotionResult(result);
+      try {
+        localStorage.setItem("latest_entry_id", (result as any)?.entry_id ?? "");
+      } catch {}
 
       // Persist to DB in background so calendar/history still works.
       analyze({ data: { content: content.trim(), image_url: imageDataUrl, local_date: localDate } })
@@ -130,7 +136,7 @@ function InputPage() {
 
       navigate({ to: "/analysis" });
     } catch (e: any) {
-      toast.error(e.message ?? "분석에 실패했어요");
+      toast.error(e?.message ?? "분석에 실패했어요");
     } finally {
       setBusy(false);
     }
