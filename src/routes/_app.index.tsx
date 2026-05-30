@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeEntry, getMyProfile, getTodayEntry } from "@/lib/analyze.functions";
-import { createEmotion } from "@/lib/n8n";
 import { setEmotionResult, type EmotionResult } from "@/lib/emotionResult";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
@@ -93,26 +92,41 @@ function InputPage() {
     r.readAsDataURL(f);
   };
 
-  const onAnalyze = async () => {
-    if (!content.trim()) { toast.error("오늘의 마음을 한 줄이라도 적어주세요"); return; }
+  const handleAnalyze = async () => {
+    if (!content.trim()) {
+      toast.error("오늘의 마음을 한 줄이라도 적어주세요");
+      return;
+    }
     setBusy(true);
     try {
-      const sleep_hours =
-        sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : null;
+      const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
+      if (!webhookUrl) throw new Error("VITE_N8N_WEBHOOK_URL 환경변수가 설정되지 않았습니다");
 
       let profile: unknown = null;
       try { profile = await fetchProfile(); } catch {}
 
-      const result = (await createEmotion({
+      const sleep_hours =
+        sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : 7;
+      const energy_level = energyLevel ?? 3;
+
+      const body = {
         user_id: user?.id ?? null,
         entry_date: localDate,
         text: content.trim(),
-        image_url: imageDataUrl,
+        image_url: imageDataUrl ?? "",
         profile,
         sleep_hours,
-        energy_level: energyLevel,
-      })) as EmotionResult;
+        energy_level,
+      };
 
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(`분석 요청 실패: ${res.status} ${res.statusText}`);
+
+      const result = (await res.json()) as EmotionResult;
       setEmotionResult(result);
 
       // Persist to DB in background so calendar/history still works.
@@ -123,7 +137,9 @@ function InputPage() {
       navigate({ to: "/analysis" });
     } catch (e: any) {
       toast.error(e.message ?? "분석에 실패했어요");
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
