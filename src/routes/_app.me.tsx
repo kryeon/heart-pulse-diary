@@ -29,7 +29,12 @@ function MePage() {
   const qc = useQueryClient();
   const fetchProfile = useServerFn(getMyProfile);
   const updateProfile = useServerFn(updateMyProfile);
-  const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => fetchProfile() });
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: () => fetchProfile(),
+    enabled: !!user,
+  });
+
 
   const quote = useMemo(() => QUOTES[new Date().getDate() % QUOTES.length], []);
   const [editing, setEditing] = useState<null | "username" | "password">(null);
