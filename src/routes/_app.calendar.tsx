@@ -288,7 +288,7 @@ function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initia
                 <StatCard label="평균 인지 부하" value={reportData.average_cognitive_load ?? "-"} />
                 <StatCard label="최대 인지 부하" value={reportData.max_cognitive_load ?? "-"} />
                 <StatCard label="기록 수" value={reportData.record_count ?? 0} />
-                <StatCard label="가장 많은 감정" value={reportData.dominant_emotion ?? "-"} />
+                <StatCard label="가장 많은 감정" value={tEmotion(reportData.dominant_emotion)} />
               </section>
 
               {chartData.length > 0 && (
