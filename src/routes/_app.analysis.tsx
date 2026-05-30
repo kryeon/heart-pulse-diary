@@ -137,6 +137,53 @@ function hslToHex(h: number, s: number, l: number) {
   return `#${ch(0)}${ch(8)}${ch(4)}`;
 }
 
+const PUFFS = [
+  { x: 0, y: 0, scale: 1.0, dur: 11 },
+  { x: -40, y: -8, scale: 0.7, dur: 13 },
+  { x: 38, y: -14, scale: 0.66, dur: 14 },
+  { x: -22, y: 22, scale: 0.56, dur: 12 },
+  { x: 30, y: 26, scale: 0.6, dur: 15 },
+  { x: 0, y: -32, scale: 0.48, dur: 10 },
+] as const;
+
+const MORPH_RADII = [
+  "30% 70% 70% 30% / 30% 30% 70% 70%",
+  "60% 40% 30% 70% / 60% 30% 70% 40%",
+  "45% 55% 65% 35% / 50% 65% 35% 50%",
+  "70% 30% 50% 50% / 40% 60% 40% 60%",
+  "30% 70% 70% 30% / 30% 30% 70% 70%",
+];
+
+function Puff({
+  size,
+  blur,
+  opacity,
+  color,
+  p,
+}: {
+  size: MotionValue<number>;
+  blur: MotionValue<number>;
+  opacity: MotionValue<number>;
+  color: string;
+  p: (typeof PUFFS)[number];
+}) {
+  const w = useTransform(size, (s) => s * p.scale);
+  const f = useTransform(blur, (b) => `blur(${b}px)`);
+  return (
+    <motion.div
+      className="absolute"
+      style={{ width: w, height: w, backgroundColor: color, opacity, filter: f }}
+      animate={{
+        x: [p.x, p.x + 8, p.x - 6, p.x + 4, p.x],
+        y: [p.y, p.y - 7, p.y + 5, p.y - 3, p.y],
+        borderRadius: MORPH_RADII,
+        rotate: [0, 6, -4, 3, 0],
+      }}
+      transition={{ duration: p.dur, repeat: Infinity, ease: "easeInOut" }}
+    />
+  );
+}
+
 function CloudBlob({
   color,
   spread,
@@ -146,31 +193,14 @@ function CloudBlob({
   spread: MotionValue<number>;
   intensity: MotionValue<number>;
 }) {
-  // 1. 형태 결정 변수 (가장 안정적이었던 수치)
   const size = useTransform(spread, (s) => 90 + s * 1.2);
   const blur = useTransform(spread, (s) => Math.max(2, (s - 20) * 0.4));
   const opacity = useTransform(intensity, (i) => 0.35 + (i / 100) * 0.6);
   const haloBlur = useTransform(spread, (s) => Math.max(16, (s - 10) * 0.6 + 16));
+  const haloFilter = useTransform(haloBlur, (b) => `blur(${b}px)`);
   const haloOpacity = useTransform(intensity, (i) => 0.15 + (i / 100) * 0.3);
-
-  // 2. 6개 조각(Puffs)의 초기 위치와 크기 비율
-  const puffs = [
-    { x: 0, y: 0, scale: 1.0, dur: 11 },
-    { x: -40, y: -8, scale: 0.7, dur: 13 },
-    { x: 38, y: -14, scale: 0.66, dur: 14 },
-    { x: -22, y: 22, scale: 0.56, dur: 12 },
-    { x: 30, y: 26, scale: 0.6, dur: 15 },
-    { x: 0, y: -32, scale: 0.48, dur: 10 },
-  ];
-
-  // 3. 구름의 유기적인 모양 변화(Morphing) 값
-  const morphRadii = [
-    "30% 70% 70% 30% / 30% 30% 70% 70%",
-    "60% 40% 30% 70% / 60% 30% 70% 40%",
-    "45% 55% 65% 35% / 50% 65% 35% 50%",
-    "70% 30% 50% 50% / 40% 60% 40% 60%",
-    "30% 70% 70% 30% / 30% 30% 70% 70%",
-  ];
+  const highlightSize = useTransform(size, (s) => s * 0.45);
+  const highlightFilter = useTransform(blur, (b) => `blur(${b * 0.6 + 8}px)`);
 
   return (
     <div className="relative w-full h-full grid place-items-center pointer-events-none">
@@ -181,7 +211,7 @@ function CloudBlob({
           width: size,
           height: size,
           backgroundColor: color,
-          filter: useTransform(haloBlur, (b) => `blur(${b}px)`),
+          filter: haloFilter,
           opacity: haloOpacity,
           scale: 1.3,
           borderRadius: "50%",
@@ -191,38 +221,21 @@ function CloudBlob({
       />
 
       {/* 6개의 구름 조각들 */}
-      {puffs.map((p, i) => (
-        <motion.div
-          key={i}
-          className="absolute"
-          style={{
-            width: useTransform(size, (s) => s * p.scale),
-            height: useTransform(size, (s) => s * p.scale),
-            backgroundColor: color,
-            opacity,
-            filter: useTransform(blur, (b) => `blur(${b}px)`),
-          }}
-          animate={{
-            x: [p.x, p.x + 8, p.x - 6, p.x + 4, p.x],
-            y: [p.y, p.y - 7, p.y + 5, p.y - 3, p.y],
-            borderRadius: morphRadii,
-            rotate: [0, 6, -4, 3, 0],
-          }}
-          transition={{ duration: p.dur, repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }}
-        />
+      {PUFFS.map((p, i) => (
+        <Puff key={i} p={p} size={size} blur={blur} opacity={opacity} color={color} />
       ))}
 
-      {/* 중앙의 하얀 하이라이트 (구름을 더 입체적으로 만듦) */}
+      {/* 중앙의 하얀 하이라이트 */}
       <motion.div
         className="absolute"
         style={{
-          width: useTransform(size, (s) => s * 0.45),
-          height: useTransform(size, (s) => s * 0.45),
+          width: highlightSize,
+          height: highlightSize,
           backgroundColor: "#ffffff",
           opacity: 0.22,
-          filter: useTransform(blur, (b) => `blur(${b * 0.6 + 8}px)`),
+          filter: highlightFilter,
         }}
-        animate={{ x: [-15, -10, -18, -15], y: [-20, -25, -18, -20], borderRadius: morphRadii }}
+        animate={{ x: [-15, -10, -18, -15], y: [-20, -25, -18, -20], borderRadius: MORPH_RADII }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
       />
     </div>
