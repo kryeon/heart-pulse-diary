@@ -271,9 +271,11 @@ function AnalysisPage() {
   const cardRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
 
-  const [emotionResult, setEmotionResultState] = useState<EmotionResult | null>(() => getEmotionResult());
+  const [emotionResult, setEmotionResultState] = useState<EmotionResult | null>(null);
   useEffect(() => {
+    setEmotionResultState(getEmotionResult());
     const sync = () => setEmotionResultState(getEmotionResult());
+    if (typeof window === "undefined") return;
     window.addEventListener("emotionResult:update", sync);
     window.addEventListener("storage", sync);
     return () => {
