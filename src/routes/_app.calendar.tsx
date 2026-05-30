@@ -8,7 +8,7 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "rec
 import { motion } from "framer-motion";
 
 export const Route = createFileRoute("/_app/calendar")({
-  head: () => ({ meta: [{ title: "달력 · 마음결" }] }),
+  head: () => ({ meta: [{ title: "달력 · Syncl\u0023r" }] }),
   component: CalendarPage,
 });
 

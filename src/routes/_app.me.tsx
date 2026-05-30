@@ -19,7 +19,7 @@ const QUOTES = [
 ];
 
 export const Route = createFileRoute("/_app/me")({
-  head: () => ({ meta: [{ title: "내 정보 · 마음결" }] }),
+  head: () => ({ meta: [{ title: "내 정보 · Syncl\u0023r" }] }),
   component: MePage,
 });
 
