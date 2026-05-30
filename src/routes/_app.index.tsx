@@ -46,6 +46,7 @@ function InputPage() {
 
   const [content, setContent] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [sleepHour, setSleepHour] = useState<number | null>(null);
   const [sleepDecimal, setSleepDecimal] = useState<number | null>(null);
