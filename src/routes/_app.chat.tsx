@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { getOrCreateUserId } from "@/lib/userId";
+import { koreanizeTexts } from "@/lib/koreanize.functions";
+import { needsKoreanization } from "@/lib/koreanize";
 
 export const Route = createFileRoute("/_app/chat")({
   component: ChatPage,
