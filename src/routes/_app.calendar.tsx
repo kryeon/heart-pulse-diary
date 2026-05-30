@@ -6,6 +6,7 @@ import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, BarChart3 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { motion } from "framer-motion";
+import { TriangleBack } from "@/components/TriangleBack";
 
 export const Route = createFileRoute("/_app/calendar")({
   head: () => ({ meta: [{ title: "달력 · Syncl\u0023r" }] }),
