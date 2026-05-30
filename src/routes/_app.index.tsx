@@ -91,16 +91,21 @@ function InputPage() {
       toast.error("오늘의 마음을 한 줄이라도 적어주세요.");
       return;
     }
+
+    console.log("WEBHOOK URL:", import.meta.env.VITE_N8N_WEBHOOK_URL);
+    const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
+    if (!webhookUrl) {
+      toast.error("Webhook URL이 설정되지 않았습니다.");
+      return;
+    }
+
     setBusy(true);
     try {
-      const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
-      if (!webhookUrl) throw new Error("VITE_N8N_WEBHOOK_URL 환경변수가 설정되지 않았습니다");
-
       const sleep_hours =
         sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : 7;
       const energy_level = energyLevel ?? 3;
 
-      const body = {
+      const payload = {
         user_id: "u002",
         entry_date: new Date().toISOString().slice(0, 10),
         text: content.trim(),
@@ -114,19 +119,29 @@ function InputPage() {
         energy_level,
       };
 
-      const res = await fetch(webhookUrl, {
+      console.log("Sending payload:", payload);
+
+      const response = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error(`분석 요청 실패: ${res.status} ${res.statusText}`);
 
-      const result = (await res.json()) as EmotionResult & { success?: boolean; entry_id?: string };
-      if (result?.success === false) throw new Error("분석에 실패했어요");
+      console.log("Response status:", response.status);
 
-      setEmotionResult(result);
+      if (!response.ok) {
+        throw new Error(`분석 요청 실패: ${response.status} ${response.statusText}`);
+      }
+
+      const data = (await response.json()) as EmotionResult & { success?: boolean; entry_id?: string };
+      console.log("n8n response:", data);
+
+      if (data?.success === false) throw new Error("분석에 실패했어요");
+
+      setEmotionResult(data);
       try {
-        localStorage.setItem("latest_entry_id", (result as any)?.entry_id ?? "");
+        localStorage.setItem("latest_emotion_result", JSON.stringify(data));
+        localStorage.setItem("latest_entry_id", (data as any)?.entry_id ?? "");
       } catch {}
 
       // Persist to DB in background so calendar/history still works.
@@ -135,8 +150,9 @@ function InputPage() {
         .catch(() => {});
 
       navigate({ to: "/analysis" });
-    } catch (e: any) {
-      toast.error(e?.message ?? "분석에 실패했어요");
+    } catch (error: any) {
+      console.error("Webhook fetch error:", error);
+      toast.error(error?.message ?? "분석에 실패했어요");
     } finally {
       setBusy(false);
     }
