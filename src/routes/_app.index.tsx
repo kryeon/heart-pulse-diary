@@ -108,23 +108,28 @@ function InputPage() {
 
       const payload = {
         user_id: "u002",
-        entry_date: new Date().toISOString().slice(0, 10),
         text: content.trim(),
         image_url: "",
-        profile: {
-          nickname: "ewha",
-          email: "ewha@ewha.ac.kr",
-          preferred_tone: "calm",
-        },
         sleep_hours,
         energy_level,
+        profile: {
+          nickname: "ewha",
+          age_group: 20,
+          main_stress_area: "학업",
+          preferred_tone: "calm",
+        },
       };
 
       console.log("Sending payload:", payload);
 
       const response = await fetch(webhookUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
         body: JSON.stringify(payload),
       });
 
@@ -134,7 +139,18 @@ function InputPage() {
         throw new Error(`분석 요청 실패: ${response.status} ${response.statusText}`);
       }
 
-      const data = (await response.json()) as EmotionResult & { success?: boolean; entry_id?: string };
+      // CORB-safe: read as text first, then parse JSON.
+      const raw = await response.text();
+      if (!raw || !raw.trim()) {
+        throw new Error("분석 응답이 비어 있어요");
+      }
+      let data: EmotionResult & { success?: boolean; entry_id?: string };
+      try {
+        data = JSON.parse(raw);
+      } catch (e) {
+        console.error("응답 JSON 파싱 실패:", e, raw);
+        throw new Error("분석 응답을 해석할 수 없어요");
+      }
       console.log("n8n response:", data);
 
       if (data?.success === false) throw new Error("분석에 실패했어요");
