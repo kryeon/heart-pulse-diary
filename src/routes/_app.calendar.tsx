@@ -296,12 +296,11 @@ function StatsPage({ onBack, initialYear, initialMonth }: { onBack: () => void; 
   return (
     <div className="space-y-6 animate-float-up">
       <header className="flex items-center justify-between pt-2">
-        <button onClick={onBack} className="text-sm text-muted-foreground inline-flex items-center gap-1">
-          <ChevronLeft className="h-4 w-4" /> 달력
-        </button>
+        <TriangleBack label="달력" onClick={onBack} />
         <h1 className="text-base font-bold">리포트</h1>
         <span className="w-12" />
       </header>
+
 
       <ReportSection title="주간 리포트" periodLabel={weeklyLabel}
         from={weeklyFrom} to={weeklyTo}
