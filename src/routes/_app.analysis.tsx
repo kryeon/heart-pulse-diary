@@ -404,7 +404,7 @@ function AnalysisPage() {
   const STAGE_H = SQUARE + GUTTER + 32;
 
   return (
-    <div className="space-y-8 animate-float-up">
+    <div className="space-y-8">
       {dateParam && (
         <div className="pt-2">
           <TriangleBack label="뒤로" />

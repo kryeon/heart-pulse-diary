@@ -199,7 +199,7 @@ function InputPage() {
   };
 
   return (
-    <div className="space-y-6 animate-float-up">
+    <div className="space-y-6">
       <header className="pt-4">
         <p className="text-xs text-muted-foreground">{new Date().toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "long" })}</p>
         <h1 className="mt-2 text-2xl font-bold leading-snug">

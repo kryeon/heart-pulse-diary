@@ -59,7 +59,7 @@ function CalendarPage() {
   if (showStats) return <StatsPage onBack={() => setShowStats(false)} entries={entries} entriesLoading={entriesLoading} />;
 
   return (
-    <div className="space-y-5 animate-float-up">
+    <div className="space-y-5">
       <header className="flex items-center justify-between pt-2">
         <div>
           {editingYear ? (
@@ -297,7 +297,7 @@ function StatsPage({
   }, [entries]);
 
   return (
-    <div className="space-y-5 animate-float-up pb-8">
+    <div className="space-y-5 pb-8">
       <header className="flex items-center justify-between pt-2">
         <TriangleBack label="달력" onClick={onBack} />
         <h1 className="text-base font-bold">감정 리포트</h1>
