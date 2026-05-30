@@ -163,7 +163,6 @@ function InputPage() {
       const scopedEmotionResult = { ...data, user_id: session.user.id, entry_date: localDate };
       setEmotionResult(scopedEmotionResult);
       try {
-        localStorage.setItem("latest_emotion_result", JSON.stringify(scopedEmotionResult));
         localStorage.setItem("latest_entry_id", (data as any)?.entry_id ?? "");
       } catch {}
 
