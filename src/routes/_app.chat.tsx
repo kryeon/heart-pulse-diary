@@ -30,8 +30,7 @@ const WEBHOOK_URL = import.meta.env.VITE_N8N_CHATBOT_WEBHOOK_URL as string;
 const MAX_MESSAGES = 5;
 
 function ChatPage() {
-  const { user } = useAuth();
-  const userId = user?.id ?? "";
+  const userId = getOrCreateUserId();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [sentCount, setSentCount] = useState(0);
