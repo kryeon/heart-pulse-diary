@@ -1,9 +1,9 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { BottomNav } from "./BottomNav";
 import logo from "@/assets/synclr-logo.png";
 
-export function SynclrWordmark({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
+export function SynclrWordmark({ className = "", style }: { className?: string; style?: CSSProperties }) {
   return (
     <span
       className={className}
