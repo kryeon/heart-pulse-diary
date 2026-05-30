@@ -281,8 +281,8 @@ function StatsPage({
   const chartData = useMemo(() => {
     return entries
       .slice()
-      .sort((a: any, b: any) => String(a.date).localeCompare(String(b.date)))
-      .map((t: any) => ({
+      .sort((a, b) => String(a.entry_date).localeCompare(String(b.entry_date)))
+      .map((t) => ({
         date: String(t.entry_date).slice(5),
         load: t.cognitive_load,
         color: t.color_hex,
