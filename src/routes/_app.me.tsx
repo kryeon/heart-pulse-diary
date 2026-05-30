@@ -31,9 +31,13 @@ function MePage() {
   const updateProfile = useServerFn(updateMyProfile);
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
-    queryFn: () => fetchProfile(),
+    queryFn: async () => {
+      if (!session?.access_token) return null;
+      return fetchProfile();
+    },
     enabled: !!session?.access_token,
     retry: false,
+    throwOnError: false,
   });
 
 
