@@ -297,13 +297,14 @@ function AnalysisPage() {
     return <div className="text-center text-muted-foreground text-sm pt-20">불러오는 중…</div>;
   }
 
-  if (!entry && emotionResult) {
-    return <EmotionResultView result={emotionResult} />;
-  }
-  if (!entry) return null;
+  // Build a synthetic entry from n8n result so we can reuse the original design
+  const synthetic = !entry && emotionResult ? n8nResultToEntry(emotionResult, targetDate) : null;
+  const view = (entry ?? synthetic) as any;
+  if (!view) return null;
 
-  const color = entry.color_hex ?? "#c8b6ff";
+  const color = view.color_hex ?? "#c8b6ff";
   const fg = readableOn(color);
+
 
   async function handleSave() {
     if (!cardRef.current) return;
