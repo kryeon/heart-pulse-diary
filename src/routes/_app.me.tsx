@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_app/me")({
 });
 
 function MePage() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const fetchProfile = useServerFn(getMyProfile);
@@ -32,7 +32,8 @@ function MePage() {
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: () => fetchProfile(),
-    enabled: !!user,
+    enabled: !!session?.access_token,
+    retry: false,
   });
 
 

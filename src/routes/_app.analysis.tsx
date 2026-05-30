@@ -11,6 +11,7 @@ import { motion, useMotionValue, useSpring, useTransform, type MotionValue } fro
 import { getEmotionResult, type EmotionResult } from "@/lib/emotionResult";
 import { SynclrWordmark } from "@/components/AppShell";
 import { TriangleBack } from "@/components/TriangleBack";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/_app/analysis")({
   head: () => ({ meta: [{ title: "오늘의 분석 · Syncl\u0023r" }] }),
@@ -250,11 +251,14 @@ function localDateStr() {
 
 function AnalysisPage() {
   const { date: dateParam } = Route.useSearch();
+  const { session } = useAuth();
   const fetchEntry = useServerFn(getTodayEntry);
   const targetDate = dateParam ?? localDateStr();
   const { data: entry, isLoading } = useQuery({
     queryKey: ["entry", targetDate],
     queryFn: () => fetchEntry({ data: { local_date: targetDate } }),
+    enabled: !!session?.access_token,
+    retry: false,
   });
   const navigate = useNavigate();
 
