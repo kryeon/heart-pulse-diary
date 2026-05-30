@@ -1,7 +1,44 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { BottomNav } from "./BottomNav";
 import logo from "@/assets/synclr-logo.png";
+
+export function SynclrWordmark({ className = "", style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <span
+      className={className}
+      aria-label={"Syncl\u0023r"}
+      style={{
+        display: "inline-flex",
+        alignItems: "baseline",
+        fontFamily: 'Arial, Helvetica, "Apple SD Gothic Neo", sans-serif',
+        letterSpacing: "0",
+        lineHeight: 1,
+        ...style,
+      }}
+    >
+      <span>Syncl</span>
+      <span
+        aria-hidden="true"
+        style={{
+          display: "inline",
+          color: "inherit",
+          opacity: 1,
+          visibility: "visible",
+          WebkitTextFillColor: "currentColor",
+          fontFamily: 'Arial, Helvetica, "Apple SD Gothic Neo", sans-serif',
+          fontWeight: "inherit",
+          lineHeight: "inherit",
+          transform: "none",
+          marginInline: "0.015em",
+        }}
+      >
+        {"\u0023"}
+      </span>
+      <span>r</span>
+    </span>
+  );
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -13,14 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             alt={"Syncl\u0023r"}
             className="h-8 w-8 rounded-lg object-cover shadow-sm group-active:scale-95 transition-transform"
           />
-          <span
-            className="text-base font-bold bg-gradient-to-r from-[#c4a8ff] via-[#ff9eb5] to-[#ffd28a] bg-clip-text text-transparent"
-            style={{ letterSpacing: "-0.01em", lineHeight: 1 }}
-          >
-            {"Syncl"}
-            <span style={{ display: "inline-block", transform: "translateY(0.06em)", margin: "0 0.01em", fontWeight: 700 }}>{"\u0023"}</span>
-            {"r"}
-          </span>
+          <SynclrWordmark className="text-base font-bold text-primary" />
         </Link>
       </header>
       <main className="mx-auto max-w-md px-5 pt-3 pb-32">{children}</main>

@@ -10,11 +10,12 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { WheelPicker } from "@/components/WheelPicker";
 import logo from "@/assets/synclr-logo.png";
+import { SynclrWordmark } from "@/components/AppShell";
 
 
 
 export const Route = createFileRoute("/_app/")({
-  head: () => ({ meta: [{ title: "오늘 하루 · 마음결" }] }),
+  head: () => ({ meta: [{ title: "오늘 하루 · Syncl\u0023r" }] }),
   component: InputPage,
 });
 
@@ -68,14 +69,7 @@ function InputPage() {
           />
 
         </div>
-        <p
-          className="text-lg font-bold bg-gradient-to-r from-[#c4a8ff] via-[#ff9eb5] to-[#ffd28a] bg-clip-text text-transparent"
-          style={{ letterSpacing: "-0.01em", lineHeight: 1 }}
-        >
-          {"Syncl"}
-          <span style={{ display: "inline-block", transform: "translateY(0.06em)", margin: "0 0.02em" }}>{"\u0023"}</span>
-          {"r"}
-        </p>
+        <SynclrWordmark className="text-lg font-bold text-primary" />
         <p className="text-sm text-muted-foreground animate-pulse">마음을 살피는 중…</p>
       </div>
     );

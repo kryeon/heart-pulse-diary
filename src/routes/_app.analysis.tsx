@@ -9,9 +9,10 @@ import { toPng } from "html-to-image";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion";
 import { getEmotionResult, type EmotionResult } from "@/lib/emotionResult";
+import { SynclrWordmark } from "@/components/AppShell";
 
 export const Route = createFileRoute("/_app/analysis")({
-  head: () => ({ meta: [{ title: "오늘의 분석 · 마음결" }] }),
+  head: () => ({ meta: [{ title: "오늘의 분석 · Syncl\u0023r" }] }),
   validateSearch: (s: Record<string, unknown>) =>
     z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).parse(s),
   component: AnalysisPage,
@@ -327,7 +328,10 @@ function AnalysisPage() {
               </div>
             </div>
 
-            <p className="text-[10px] opacity-60 font-mono pt-1">마음결 · {entry.entry_date}</p>
+            <p className="text-[10px] opacity-100 pt-1 inline-flex items-center gap-1">
+              <SynclrWordmark className="font-bold" style={{ color: fg }} />
+              <span style={{ color: fg, opacity: 0.6 }}>· {entry.entry_date}</span>
+            </p>
           </div>
         </div>
 

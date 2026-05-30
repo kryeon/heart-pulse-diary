@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Heart } from "lucide-react";
+import { SynclrWordmark } from "@/components/AppShell";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "로그인 · 마음결" }] }),
+  head: () => ({ meta: [{ title: "로그인 · Syncl\u0023r" }] }),
   component: LoginPage,
 });
 
@@ -51,7 +52,7 @@ function LoginPage() {
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-primary/20 mb-4">
             <Heart className="h-7 w-7 text-primary" fill="currentColor" />
           </div>
-          <h1 className="text-2xl font-bold">마음결</h1>
+          <h1 className="text-2xl font-bold"><SynclrWordmark /></h1>
           <p className="text-sm text-muted-foreground mt-1.5">오늘의 마음을 부드럽게 들여다봐요</p>
         </div>
 
