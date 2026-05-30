@@ -34,7 +34,7 @@ function InputPage() {
   const { session } = useAuth();
   const fetchToday = useServerFn(getTodayEntry);
   const analyze = useServerFn(analyzeEntry);
-  const sendWebhook = useServerFn(sendN8nWebhook);
+  
   const localDate = localDateStr();
   const { data: today, isLoading, isFetching } = useQuery({
     queryKey: ["today", localDate, session?.user.id],
