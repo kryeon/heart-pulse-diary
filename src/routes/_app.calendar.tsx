@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { getEntriesInRange } from "@/lib/analyze.functions";
+import { translateReport } from "@/lib/translate.functions";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight, BarChart3, Loader2 } from "lucide-react";
@@ -188,7 +189,9 @@ function InsightBlock({ label, text }: { label: string; text?: string }) {
 
 function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initialMonth: number }) {
   const { user } = useAuth();
+  const translate = useServerFn(translateReport);
   const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState("리포트를 생성하는 중이에요...");
   const [error, setError] = useState<string | null>(null);
   const [reportData, setReportData] = useState<any>(null);
 
@@ -196,31 +199,35 @@ function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initia
     if (!user?.id) return;
     let cancelled = false;
     setLoading(true);
+    setLoadingMsg("리포트를 생성하는 중이에요...");
     setError(null);
     setReportData(null);
-    fetch(import.meta.env.VITE_N8N_REPORT_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: user.id, report_type: "weekly", days: 7 }),
-    })
-      .then(async (r) => {
+    (async () => {
+      try {
+        const r = await fetch(import.meta.env.VITE_N8N_REPORT_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: user.id, report_type: "weekly", days: 7 }),
+        });
         if (!r.ok) throw new Error("bad");
-        return r.json();
-      })
-      .then((d) => {
+        const d = await r.json();
         if (cancelled) return;
-        // n8n sometimes wraps response in an array
         const payload = Array.isArray(d) ? d[0] : d;
-        setReportData(payload);
-      })
-      .catch(() => {
+        setLoadingMsg("한국어로 번역하는 중이에요...");
+        try {
+          const translated = await translate({ data: { report: payload } });
+          if (!cancelled) setReportData(translated);
+        } catch {
+          if (!cancelled) setReportData(payload);
+        }
+      } catch {
         if (!cancelled) setError("리포트를 생성하지 못했습니다. 잠시 후 다시 시도해주세요.");
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    })();
     return () => { cancelled = true; };
-  }, [user?.id]);
+  }, [user?.id, translate]);
 
   const chartData = useMemo(() => {
     if (!reportData?.timeline) return [];
@@ -245,7 +252,7 @@ function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initia
       {loading && (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
           <Loader2 className="h-6 w-6 animate-spin" />
-          <p className="text-sm">리포트를 생성하는 중이에요...</p>
+          <p className="text-sm">{loadingMsg}</p>
         </div>
       )}
 
