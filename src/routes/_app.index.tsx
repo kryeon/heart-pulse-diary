@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeEntry, getTodayEntry } from "@/lib/analyze.functions";
 import { setEmotionResult, type EmotionResult } from "@/lib/emotionResult";
-import { sendN8nWebhook } from "@/lib/n8n.functions";
-import type { N8nWebhookPayload } from "@/lib/n8n";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
