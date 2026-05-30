@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { PencilLine, CalendarDays, User } from "lucide-react";
+import { PencilLine, CalendarDays, MessageCircle, User } from "lucide-react";
 
 const items = [
   { to: "/", label: "입력", Icon: PencilLine },
   { to: "/calendar", label: "달력", Icon: CalendarDays },
+  { to: "/chat", label: "Chat", Icon: MessageCircle },
   { to: "/me", label: "내 정보", Icon: User },
 ] as const;
 
@@ -16,7 +17,7 @@ export function BottomNav() {
             <Link
               key={to}
               to={to}
-              className="flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl text-muted-foreground transition-all data-[status=active]:text-primary data-[status=active]:bg-primary/10"
+              className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl text-muted-foreground transition-all data-[status=active]:text-primary data-[status=active]:bg-primary/10"
               activeOptions={{ exact: true }}
             >
               <Icon className="h-5 w-5" strokeWidth={2.2} />
