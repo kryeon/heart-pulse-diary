@@ -1,50 +1,34 @@
 export interface N8nWebhookPayload {
-  [key: string]: unknown;
-}
-
-const DEFAULT_WEBHOOK_URL = "https://isihyeon88.app.n8n.cloud/webhook/app";
-
-export async function callN8n(payload: N8nWebhookPayload): Promise<unknown> {
-  const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || DEFAULT_WEBHOOK_URL;
-
-  const response = await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw new Error(`n8n webhook failed: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json().catch(() => undefined);
-}
-
-export interface CreateEmotionPayload {
-  user_id: string | null;
-  entry_date: string;
+  user_id: string;
   text: string;
-  image_url: string | null;
-  profile: unknown;
-  sleep_hours: number | null;
-  energy_level: number | null;
+  image_url: string;
+  sleep_hours: number;
+  energy_level: number;
+  profile: {
+    nickname: string;
+    age_group: number;
+    main_stress_area: string;
+    preferred_tone: string;
+  };
 }
 
-export async function createEmotion(payload: CreateEmotionPayload): Promise<unknown> {
-  const url = import.meta.env.VITE_N8N_WEBHOOK_URL || "https://isihyeon88.app.n8n.cloud/webhook/app";
-  if (!url) {
-    throw new Error("VITE_N8N_WEBHOOK_URL 환경변수가 설정되지 않았습니다");
+export type N8nWebhookResponse = Record<string, unknown>;
+
+export const N8N_WEBHOOK_HEADERS = {
+  "Content-Type": "application/json",
+  Accept: "application/json",
+  "ngrok-skip-browser-warning": "true",
+} as const;
+
+export function parseN8nWebhookResponse(raw: string): N8nWebhookResponse {
+  if (!raw || !raw.trim()) {
+    throw new Error("분석 응답이 비어 있어요");
   }
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw new Error(`create emotion failed: ${response.status} ${response.statusText}`);
+  try {
+    return JSON.parse(raw) as N8nWebhookResponse;
+  } catch (error) {
+    console.error("응답 JSON 파싱 실패:", error, raw);
+    throw new Error("분석 응답을 해석할 수 없어요");
   }
-
-  return response.json();
 }

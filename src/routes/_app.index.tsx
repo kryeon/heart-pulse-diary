@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeEntry, getTodayEntry } from "@/lib/analyze.functions";
 import { setEmotionResult, type EmotionResult } from "@/lib/emotionResult";
+import { sendN8nWebhook } from "@/lib/n8n.functions";
+import type { N8nWebhookPayload } from "@/lib/n8n";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { Sparkles, ImagePlus, Moon, Zap } from "lucide-react";
@@ -33,6 +35,7 @@ function InputPage() {
   const { session } = useAuth();
   const fetchToday = useServerFn(getTodayEntry);
   const analyze = useServerFn(analyzeEntry);
+  const sendWebhook = useServerFn(sendN8nWebhook);
   const localDate = localDateStr();
   const { data: today, isLoading, isFetching } = useQuery({
     queryKey: ["today", localDate, session?.user.id],
@@ -92,6 +95,11 @@ function InputPage() {
       return;
     }
 
+    if (!session?.user.id) {
+      toast.error("로그인이 필요합니다.");
+      return;
+    }
+
     console.log("WEBHOOK URL:", import.meta.env.VITE_N8N_WEBHOOK_URL);
     const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
     if (!webhookUrl) {
@@ -105,10 +113,10 @@ function InputPage() {
         sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : 7;
       const energy_level = energyLevel ?? 3;
 
-      const payload = {
-        user_id: "u002",
+      const payload: N8nWebhookPayload = {
+        user_id: session.user.id,
         text: content.trim(),
-        image_url: "",
+        image_url: imageDataUrl ?? "",
         sleep_hours,
         energy_level,
         profile: {
@@ -121,35 +129,7 @@ function InputPage() {
 
       console.log("Sending payload:", payload);
 
-      const response = await fetch(webhookUrl, {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "ngrok-skip-browser-warning": "true",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      console.log("Response status:", response.status);
-
-      if (!response.ok) {
-        throw new Error(`분석 요청 실패: ${response.status} ${response.statusText}`);
-      }
-
-      // CORB-safe: read as text first, then parse JSON.
-      const raw = await response.text();
-      if (!raw || !raw.trim()) {
-        throw new Error("분석 응답이 비어 있어요");
-      }
-      let data: EmotionResult & { success?: boolean; entry_id?: string };
-      try {
-        data = JSON.parse(raw);
-      } catch (e) {
-        console.error("응답 JSON 파싱 실패:", e, raw);
-        throw new Error("분석 응답을 해석할 수 없어요");
-      }
+      const data = await sendWebhook({ data: payload }) as EmotionResult & { success?: boolean; entry_id?: string };
       console.log("n8n response:", data);
 
       if (data?.success === false) throw new Error("분석에 실패했어요");
