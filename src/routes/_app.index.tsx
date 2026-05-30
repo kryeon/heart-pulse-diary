@@ -131,24 +131,32 @@ function InputPage() {
         sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : 7;
       const energy_level = energyLevel ?? 3;
 
-      const payload: N8nWebhookPayload = {
+      const payload = {
         user_id: session.user.id,
+        entry_date: localDate,
         text: content.trim(),
         image_url: uploadedImageUrl,
-        sleep_hours,
-        energy_level,
         profile: {
           nickname: "ewha",
           age_group: 20,
           main_stress_area: "학업",
           preferred_tone: "calm",
         },
+        sleep_hours,
+        energy_level,
       };
 
       console.log("Sending payload:", payload);
 
-      const data = await sendWebhook({ data: payload }) as EmotionResult & { success?: boolean; entry_id?: string };
+      const res = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`분석 요청 실패: ${res.status}`);
+      const data = (await res.json()) as EmotionResult & { success?: boolean; entry_id?: string };
       console.log("n8n response:", data);
+
 
       if (data?.success === false) throw new Error("분석에 실패했어요");
 
