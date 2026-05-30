@@ -52,8 +52,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Syncl\u0023r · 오늘의 마음 분석" },
-      { name: "description", content: "지친 마음을 따뜻하게 들여다보는 감정 기록 다이어리, Syncl\u0023r" },
+      { title: "Syncl#u" },
+      { name: "description", content: "지친 마음을 따뜻하게 들여다보는 감정 기록 다이어리, Synclu0023r" },
+      { property: "og:title", content: "Syncl#u" },
+      { name: "twitter:title", content: "Syncl#u" },
+      { property: "og:description", content: "지친 마음을 따뜻하게 들여다보는 감정 기록 다이어리, Synclu0023r" },
+      { name: "twitter:description", content: "지친 마음을 따뜻하게 들여다보는 감정 기록 다이어리, Synclu0023r" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/34ce87ff-505c-41b1-ab53-3ad2aee42d47/id-preview-7cf5a700--347eda9f-b248-40d0-ba2e-0e75265ef2cd.lovable.app-1780133285850.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/34ce87ff-505c-41b1-ab53-3ad2aee42d47/id-preview-7cf5a700--347eda9f-b248-40d0-ba2e-0e75265ef2cd.lovable.app-1780133285850.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
