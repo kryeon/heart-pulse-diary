@@ -256,7 +256,7 @@ function InputPage() {
       </div>
 
       <button
-        onClick={onAnalyze}
+        onClick={handleAnalyze}
         disabled={busy}
         className="w-full rounded-3xl bg-primary py-4 font-semibold text-primary-foreground shadow-[0_10px_30px_-10px_rgba(150,120,200,0.5)] disabled:opacity-70 transition-transform active:scale-[0.98] inline-flex items-center justify-center gap-2"
       >
