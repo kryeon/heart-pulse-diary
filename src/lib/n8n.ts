@@ -31,9 +31,9 @@ export interface CreateEmotionPayload {
 }
 
 export async function createEmotion(payload: CreateEmotionPayload): Promise<unknown> {
-  const url = import.meta.env.VITE_N8N_CREATE_EMOTION_URL;
+  const url = import.meta.env.VITE_N8N_WEBHOOK_URL || "http://localhost:5678/webhook/app";
   if (!url) {
-    throw new Error("VITE_N8N_CREATE_EMOTION_URL 환경변수가 설정되지 않았습니다");
+    throw new Error("VITE_N8N_WEBHOOK_URL 환경변수가 설정되지 않았습니다");
   }
 
   const response = await fetch(url, {
