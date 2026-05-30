@@ -2,10 +2,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { getEntriesInRange } from "@/lib/analyze.functions";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
-import { ChevronLeft, ChevronRight, BarChart3 } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { ChevronLeft, ChevronRight, BarChart3, Loader2 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
-import { motion } from "framer-motion";
 import { TriangleBack } from "@/components/TriangleBack";
 import { useAuth } from "@/lib/auth-context";
 
