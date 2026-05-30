@@ -34,6 +34,8 @@ function InputPage() {
   const { session } = useAuth();
   const fetchToday = useServerFn(getTodayEntry);
   const analyze = useServerFn(analyzeEntry);
+  const saveEntry = useServerFn(saveN8nEntry);
+
   
   const localDate = localDateStr();
   const { data: today, isLoading, isFetching } = useQuery({
