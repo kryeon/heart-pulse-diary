@@ -132,7 +132,7 @@ function InputPage() {
       const energy_level = energyLevel ?? 3;
 
       const payload = {
-        user_id: session.user.id,
+        user_id: getOrCreateUserId(),
         entry_date: localDate,
         text: content.trim(),
         image_url: uploadedImageUrl,
