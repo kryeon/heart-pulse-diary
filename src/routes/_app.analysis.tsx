@@ -303,8 +303,12 @@ function AnalysisPage() {
 
   const [emotionResult, setEmotionResultState] = useState<EmotionResult | null>(null);
   useEffect(() => {
-    setEmotionResultState(getEmotionResult());
-    const sync = () => setEmotionResultState(getEmotionResult());
+    const sync = () => {
+      const latest = getEmotionResult();
+      const owner = (latest as any)?.user_id;
+      setEmotionResultState(!owner || owner === session?.user.id ? latest : null);
+    };
+    sync();
     if (typeof window === "undefined") return;
     window.addEventListener("emotionResult:update", sync);
     window.addEventListener("storage", sync);
@@ -312,7 +316,7 @@ function AnalysisPage() {
       window.removeEventListener("emotionResult:update", sync);
       window.removeEventListener("storage", sync);
     };
-  }, []);
+  }, [session?.user.id]);
 
   useEffect(() => {
     if (!isLoading && !entry && !emotionResult) navigate({ to: "/", replace: true });
