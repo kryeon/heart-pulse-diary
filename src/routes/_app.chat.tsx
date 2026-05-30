@@ -89,7 +89,8 @@ function ChatPage() {
           }),
         });
         if (!res.ok) throw new Error("init failed");
-        const data: N8nResponse = await res.json();
+        const raw: N8nResponse = await res.json();
+        const data = await ensureKoreanFields(raw);
         const reply =
           data.reply ??
           (data.has_today_record === false
@@ -139,7 +140,8 @@ function ChatPage() {
         }),
       });
       if (!res.ok) throw new Error("chat failed");
-      const data: N8nResponse = await res.json();
+      const raw: N8nResponse = await res.json();
+      const data = await ensureKoreanFields(raw);
       setMessages((m) => [
         ...m,
         {
