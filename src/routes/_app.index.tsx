@@ -2,9 +2,11 @@ import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeEntry, getTodayEntry } from "@/lib/analyze.functions";
+import { callN8n } from "@/lib/n8n";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles, ImagePlus, Loader2 } from "lucide-react";
+import { Sparkles, ImagePlus, Moon, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/")({
   head: () => ({ meta: [{ title: "오늘 하루 · 마음결" }] }),
