@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { analyzeEntry, getMyProfile, getTodayEntry } from "@/lib/analyze.functions";
+import { analyzeEntry, getTodayEntry } from "@/lib/analyze.functions";
 import { setEmotionResult, type EmotionResult } from "@/lib/emotionResult";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
@@ -30,15 +30,14 @@ function localDateStr() {
 function InputPage() {
   const navigate = useNavigate();
   const router = useRouter();
-  const { user } = useAuth();
+  const { session } = useAuth();
   const fetchToday = useServerFn(getTodayEntry);
   const analyze = useServerFn(analyzeEntry);
-  const fetchProfile = useServerFn(getMyProfile);
   const localDate = localDateStr();
   const { data: today, isLoading, isFetching } = useQuery({
-    queryKey: ["today", localDate, user?.id],
+    queryKey: ["today", localDate, session?.user.id],
     queryFn: () => fetchToday({ data: { local_date: localDate } }),
-    enabled: !!user,
+    enabled: !!session?.access_token,
   });
 
   const [content, setContent] = useState("");
@@ -162,9 +161,11 @@ function InputPage() {
       } catch {}
 
       // Persist to DB in background so calendar/history still works.
-      analyze({ data: { content: content.trim(), image_url: imageDataUrl, local_date: localDate } })
-        .then(() => router.invalidate())
-        .catch(() => {});
+      if (session?.access_token) {
+        analyze({ data: { content: content.trim(), image_url: imageDataUrl, local_date: localDate } })
+          .then(() => router.invalidate())
+          .catch(() => {});
+      }
 
       navigate({ to: "/analysis" });
     } catch (error: any) {

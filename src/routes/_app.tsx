@@ -22,14 +22,14 @@ export const Route = createFileRoute("/_app")({
 });
 
 function AppLayout() {
-  const { user, loading } = useAuth();
+  const { session, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login", replace: true });
-  }, [user, loading, navigate]);
+    if (!loading && !session?.access_token) navigate({ to: "/login", replace: true });
+  }, [session?.access_token, loading, navigate]);
 
-  if (loading || !user) {
+  if (loading || !session?.access_token) {
     return (
       <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">
         마음을 불러오는 중…
