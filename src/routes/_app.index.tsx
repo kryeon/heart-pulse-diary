@@ -35,6 +35,8 @@ function InputPage() {
   const [content, setContent] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [sleepHours, setSleepHours] = useState<string>("");
+  const [energyLevel, setEnergyLevel] = useState<number | null>(null);
 
   // Navigate to analysis only after the today-check completes
   useEffect(() => {
