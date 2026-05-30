@@ -326,10 +326,16 @@ function AnalysisPage() {
 
   return (
     <div className="space-y-8 animate-float-up">
+      {dateParam && (
+        <div className="pt-2">
+          <TriangleBack label="뒤로" />
+        </div>
+      )}
       <header className="text-center pt-2">
         <p className="text-xs text-muted-foreground tracking-wider">{dateParam ? entry.entry_date : "TODAY'S MIND"}</p>
         <h1 className="mt-1 text-2xl font-bold">{dateParam ? "그 날의 마음의 빛" : "오늘 마음의 빛"}</h1>
       </header>
+
 
       {/* Cloud + sliders grouped: centered horizontally as one unit */}
       <div className="flex justify-center">
