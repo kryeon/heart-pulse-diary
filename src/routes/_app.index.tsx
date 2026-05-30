@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { analyzeEntry, getTodayEntry } from "@/lib/analyze.functions";
-import { callN8n } from "@/lib/n8n";
+import { analyzeEntry, getMyProfile, getTodayEntry } from "@/lib/analyze.functions";
+import { createEmotion } from "@/lib/n8n";
+import { setEmotionResult, type EmotionResult } from "@/lib/emotionResult";
+import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { Sparkles, ImagePlus, Moon, Zap } from "lucide-react";
 import { toast } from "sonner";
