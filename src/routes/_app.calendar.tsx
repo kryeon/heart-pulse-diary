@@ -137,6 +137,36 @@ function CalendarPage() {
   );
 }
 
+const EMOTION_KO: Record<string, string> = {
+  anxiety: "불안", anxious: "불안", worry: "걱정", fear: "두려움", scared: "두려움",
+  sadness: "슬픔", sad: "슬픔", grief: "비탄", lonely: "외로움", loneliness: "외로움",
+  anger: "분노", angry: "분노", frustration: "좌절", frustrated: "좌절", irritation: "짜증",
+  stress: "스트레스", stressed: "스트레스", overwhelmed: "압도감", tired: "피로", fatigue: "피로",
+  joy: "기쁨", happy: "행복", happiness: "행복", excitement: "설렘", excited: "설렘",
+  calm: "평온", peace: "평온", peaceful: "평온", relaxed: "편안",
+  hope: "희망", hopeful: "희망", gratitude: "감사", grateful: "감사", love: "사랑",
+  confidence: "자신감", confident: "자신감", pride: "뿌듯함", proud: "뿌듯함",
+  confusion: "혼란", confused: "혼란", boredom: "지루함", bored: "지루함",
+  shame: "수치심", guilt: "죄책감", disappointment: "실망", disappointed: "실망",
+  neutral: "보통",
+};
+
+const DOMAIN_KO: Record<string, string> = {
+  study: "학업", school: "학교", work: "업무", job: "일", career: "커리어",
+  relationship: "관계", family: "가족", friend: "친구", friends: "친구", love: "연애",
+  health: "건강", sleep: "수면", exercise: "운동", finance: "재정", money: "돈",
+  hobby: "취미", self: "자기계발", future: "미래", daily: "일상", life: "삶",
+};
+
+function tEmotion(s?: string) {
+  if (!s) return "-";
+  return EMOTION_KO[s.toLowerCase().trim()] ?? s;
+}
+function tDomain(s?: string) {
+  if (!s) return "-";
+  return DOMAIN_KO[s.toLowerCase().trim()] ?? s;
+}
+
 function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="rounded-2xl bg-card border border-border p-3 text-center">
