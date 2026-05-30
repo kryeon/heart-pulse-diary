@@ -12,7 +12,8 @@ export interface N8nWebhookPayload {
   };
 }
 
-export type N8nWebhookResponse = Record<string, unknown>;
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+export type N8nWebhookResponse = { [key: string]: JsonValue };
 
 export const N8N_WEBHOOK_HEADERS = {
   "Content-Type": "application/json",
