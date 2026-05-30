@@ -280,7 +280,7 @@ function AnalysisPage() {
   const fetchEntry = useServerFn(getTodayEntry);
   const targetDate = dateParam ?? localDateStr();
   const { data: entry, isLoading } = useQuery({
-    queryKey: ["entry", targetDate],
+    queryKey: ["entry", session?.user.id, targetDate],
     queryFn: () => fetchEntry({ data: { local_date: targetDate } }),
     enabled: !!session?.access_token,
     retry: false,
