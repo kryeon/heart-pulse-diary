@@ -36,8 +36,9 @@ function InputPage() {
   const fetchProfile = useServerFn(getMyProfile);
   const localDate = localDateStr();
   const { data: today, isLoading, isFetching } = useQuery({
-    queryKey: ["today", localDate],
+    queryKey: ["today", localDate, user?.id],
     queryFn: () => fetchToday({ data: { local_date: localDate } }),
+    enabled: !!user,
   });
 
   const [content, setContent] = useState("");
