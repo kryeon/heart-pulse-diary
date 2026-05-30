@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, BarChart3, Loader2 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { TriangleBack } from "@/components/TriangleBack";
 import { useAuth } from "@/lib/auth-context";
+import { getOrCreateUserId } from "@/lib/userId";
 
 export const Route = createFileRoute("/_app/calendar")({
   head: () => ({ meta: [{ title: "달력 · Syncl\u0023r" }] }),
