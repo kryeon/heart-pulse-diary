@@ -221,7 +221,22 @@ const REC_TONES = [
 ];
 
 
-function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initialMonth: number }) {
+type EntryRow = {
+  entry_date: string;
+  cognitive_load: number | null;
+  color_hex: string | null;
+  summary: string | null;
+};
+
+function StatsPage({
+  onBack,
+  entries,
+  entriesLoading,
+}: {
+  onBack: () => void;
+  entries: EntryRow[];
+  entriesLoading: boolean;
+}) {
   const { user } = useAuth();
   const translate = useServerFn(translateReport);
   const [loading, setLoading] = useState(false);
@@ -264,16 +279,16 @@ function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initia
   }, [user?.id, translate]);
 
   const chartData = useMemo(() => {
-    if (!reportData?.timeline) return [];
-    return reportData.timeline
+    return entries
       .slice()
       .sort((a: any, b: any) => String(a.date).localeCompare(String(b.date)))
       .map((t: any) => ({
-        date: String(t.date).slice(5),
+        date: String(t.entry_date).slice(5),
         load: t.cognitive_load,
-        color: t.hex_color,
-      }));
-  }, [reportData]);
+        color: t.color_hex,
+      }))
+      .filter((t) => typeof t.load === "number");
+  }, [entries]);
 
   return (
     <div className="space-y-5 animate-float-up pb-8">
