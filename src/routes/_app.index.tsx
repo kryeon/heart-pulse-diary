@@ -112,6 +112,21 @@ function InputPage() {
 
     setBusy(true);
     try {
+      let uploadedImageUrl = "";
+      if (selectedFile) {
+        const file = selectedFile;
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${session.user.id}/${crypto.randomUUID()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("journal-images")
+          .upload(fileName, file);
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage
+          .from("journal-images")
+          .getPublicUrl(fileName);
+        uploadedImageUrl = publicUrlData.publicUrl;
+      }
+
       const sleep_hours =
         sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : 7;
       const energy_level = energyLevel ?? 3;
@@ -119,7 +134,7 @@ function InputPage() {
       const payload: N8nWebhookPayload = {
         user_id: session.user.id,
         text: content.trim(),
-        image_url: imageDataUrl ?? "",
+        image_url: uploadedImageUrl,
         sleep_hours,
         energy_level,
         profile: {
