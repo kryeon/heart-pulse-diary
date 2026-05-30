@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppMeRouteImport } from './routes/_app.me'
+import { Route as AppChatRouteImport } from './routes/_app.chat'
 import { Route as AppCalendarRouteImport } from './routes/_app.calendar'
 import { Route as AppAnalysisRouteImport } from './routes/_app.analysis'
 
@@ -35,6 +36,11 @@ const AppMeRoute = AppMeRouteImport.update({
   path: '/me',
   getParentRoute: () => AppRoute,
 } as any)
+const AppChatRoute = AppChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCalendarRoute = AppCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -51,12 +57,14 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/analysis': typeof AppAnalysisRoute
   '/calendar': typeof AppCalendarRoute
+  '/chat': typeof AppChatRoute
   '/me': typeof AppMeRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/analysis': typeof AppAnalysisRoute
   '/calendar': typeof AppCalendarRoute
+  '/chat': typeof AppChatRoute
   '/me': typeof AppMeRoute
   '/': typeof AppIndexRoute
 }
@@ -66,20 +74,22 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_app/analysis': typeof AppAnalysisRoute
   '/_app/calendar': typeof AppCalendarRoute
+  '/_app/chat': typeof AppChatRoute
   '/_app/me': typeof AppMeRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/analysis' | '/calendar' | '/me'
+  fullPaths: '/' | '/login' | '/analysis' | '/calendar' | '/chat' | '/me'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/analysis' | '/calendar' | '/me' | '/'
+  to: '/login' | '/analysis' | '/calendar' | '/chat' | '/me' | '/'
   id:
     | '__root__'
     | '/_app'
     | '/login'
     | '/_app/analysis'
     | '/_app/calendar'
+    | '/_app/chat'
     | '/_app/me'
     | '/_app/'
   fileRoutesById: FileRoutesById
@@ -119,6 +129,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMeRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/chat': {
+      id: '/_app/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof AppChatRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/calendar': {
       id: '/_app/calendar'
       path: '/calendar'
@@ -139,6 +156,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAnalysisRoute: typeof AppAnalysisRoute
   AppCalendarRoute: typeof AppCalendarRoute
+  AppChatRoute: typeof AppChatRoute
   AppMeRoute: typeof AppMeRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -146,6 +164,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAnalysisRoute: AppAnalysisRoute,
   AppCalendarRoute: AppCalendarRoute,
+  AppChatRoute: AppChatRoute,
   AppMeRoute: AppMeRoute,
   AppIndexRoute: AppIndexRoute,
 }
