@@ -35,7 +35,8 @@ function InputPage() {
   const [content, setContent] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [sleepHours, setSleepHours] = useState<string>("");
+  const [sleepHour, setSleepHour] = useState<number | null>(null);
+  const [sleepDecimal, setSleepDecimal] = useState<number | null>(null);
   const [energyLevel, setEnergyLevel] = useState<number | null>(null);
 
   // Navigate to analysis only after the today-check completes
@@ -73,7 +74,7 @@ function InputPage() {
         content: content.trim(),
         image_url: imageDataUrl,
         local_date: localDate,
-        sleep_hours: sleepHours ? Number(sleepHours) : null,
+        sleep_hours: sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : null,
         energy_level: energyLevel,
       }).catch(() => {});
 
@@ -123,22 +124,40 @@ function InputPage() {
             <Moon className="h-4 w-4 text-muted-foreground" />
             <label className="text-sm font-medium">오늘의 수면 시간</label>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <input
               type="number"
               min={0}
               max={24}
-              step={0.1}
-              value={sleepHours}
+              step={1}
+              value={sleepHour ?? ""}
               onChange={(e) => {
                 const val = e.target.value;
-                if (val === "") { setSleepHours(""); return; }
+                if (val === "") { setSleepHour(null); return; }
                 const n = Number(val);
-                if (n >= 0 && n <= 24) setSleepHours(val);
+                if (n >= 0 && n <= 24 && Number.isInteger(n)) setSleepHour(n);
               }}
               placeholder="0"
-              className="flex-1 h-12 rounded-2xl border border-input bg-transparent px-4 text-center text-lg font-semibold outline-none focus-visible:ring-1 focus-visible:ring-ring [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="w-16 h-12 rounded-2xl border border-input bg-transparent px-2 text-center text-lg font-semibold outline-none focus-visible:ring-1 focus-visible:ring-ring [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
+            <span className="text-lg font-bold text-muted-foreground">.</span>
+            <div className="flex-1 grid grid-cols-5 gap-1.5">
+              {Array.from({ length: 10 }, (_, i) => i).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setSleepDecimal(n)}
+                  className={cn(
+                    "h-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer",
+                    sleepDecimal === n
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  )}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
             <span className="text-sm text-muted-foreground font-medium shrink-0">시간</span>
           </div>
         </div>
