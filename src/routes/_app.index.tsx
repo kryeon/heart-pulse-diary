@@ -69,6 +69,14 @@ function InputPage() {
     if (!content.trim()) { toast.error("오늘의 마음을 한 줄이라도 적어주세요"); return; }
     setBusy(true);
     try {
+      callN8n({
+        content: content.trim(),
+        image_url: imageDataUrl,
+        local_date: localDate,
+        sleep_hours: sleepHours ? Number(sleepHours) : null,
+        energy_level: energyLevel,
+      }).catch(() => {});
+
       await analyze({ data: { content: content.trim(), image_url: imageDataUrl, local_date: localDate } });
       await router.invalidate();
       navigate({ to: "/analysis" });
