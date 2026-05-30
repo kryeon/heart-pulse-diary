@@ -59,8 +59,8 @@ function InputPage() {
     }
   }, [isLoading, isFetching, today, navigate]);
 
-  // While checking (or about to redirect), show a full-screen breathing signature loader
-  if (isLoading || isFetching || today) {
+  // While checking, analyzing, or about to redirect, show a full-screen breathing signature loader
+  if (isLoading || isFetching || today || busy) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center gap-5">
         <div className="relative">
