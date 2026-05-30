@@ -286,6 +286,7 @@ function AnalysisPage() {
     queryFn: () => fetchEntry({ data: { local_date: targetDate } }),
     enabled: !!session?.access_token,
     retry: false,
+    placeholderData: (prev) => prev,
   });
   const navigate = useNavigate();
 
@@ -403,7 +404,7 @@ function AnalysisPage() {
   const STAGE_H = SQUARE + GUTTER + 32;
 
   return (
-    <div className="space-y-8 animate-float-up">
+    <div className="space-y-8">
       {dateParam && (
         <div className="pt-2">
           <TriangleBack label="뒤로" />

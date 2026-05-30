@@ -70,7 +70,7 @@ function MePage() {
   };
 
   return (
-    <div className="space-y-6 animate-float-up">
+    <div className="space-y-6">
       <header className="pt-2 flex items-center gap-4">
         <div className="h-16 w-16 rounded-3xl bg-primary/20 grid place-items-center">
           <UserIcon className="h-7 w-7 text-primary" />
@@ -97,7 +97,7 @@ function MePage() {
       </div>
 
       {editing && (
-        <div className="rounded-3xl bg-card border border-border p-5 space-y-3 animate-float-up">
+        <div className="rounded-3xl bg-card border border-border p-5 space-y-3">
           <p className="text-sm font-semibold">{editing === "username" ? "새 아이디" : "새 비밀번호"}</p>
           <input
             type={editing === "password" ? "password" : "text"}
