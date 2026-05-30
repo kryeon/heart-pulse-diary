@@ -161,7 +161,7 @@ function InputPage() {
 
       if (data?.success === false) throw new Error("분석에 실패했어요");
 
-      const scopedEmotionResult = { ...data, user_id: session.user.id, entry_date: localDate };
+      const scopedEmotionResult = { ...data, user_id: getOrCreateUserId(), entry_date: localDate };
       setEmotionResult(scopedEmotionResult);
       try {
         localStorage.setItem("latest_entry_id", (data as any)?.entry_id ?? "");
