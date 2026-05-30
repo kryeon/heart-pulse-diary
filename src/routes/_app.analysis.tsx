@@ -317,7 +317,7 @@ function AnalysisPage() {
         style: { borderRadius: "24px" },
       });
       const link = document.createElement("a");
-      link.download = `maeumgyeol-${entry?.entry_date ?? "today"}.png`;
+      link.download = `maeumgyeol-${view?.entry_date ?? "today"}.png`;
       link.href = dataUrl;
       link.click();
     } finally {
