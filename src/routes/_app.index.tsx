@@ -7,6 +7,7 @@ import { sendN8nWebhook } from "@/lib/n8n.functions";
 import type { N8nWebhookPayload } from "@/lib/n8n";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, ImagePlus, Moon, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,7 @@ function InputPage() {
 
   const [content, setContent] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [sleepHour, setSleepHour] = useState<number | null>(null);
   const [sleepDecimal, setSleepDecimal] = useState<number | null>(null);
@@ -84,6 +86,7 @@ function InputPage() {
     const f = e.target.files?.[0];
     if (!f) return;
     if (f.size > 2_000_000) { toast.error("2MB 이하 이미지를 올려주세요"); return; }
+    setSelectedFile(f);
     const r = new FileReader();
     r.onload = () => setImageDataUrl(r.result as string);
     r.readAsDataURL(f);
@@ -109,6 +112,21 @@ function InputPage() {
 
     setBusy(true);
     try {
+      let uploadedImageUrl = "";
+      if (selectedFile) {
+        const file = selectedFile;
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${session.user.id}/${crypto.randomUUID()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("journal-images")
+          .upload(fileName, file);
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage
+          .from("journal-images")
+          .getPublicUrl(fileName);
+        uploadedImageUrl = publicUrlData.publicUrl;
+      }
+
       const sleep_hours =
         sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : 7;
       const energy_level = energyLevel ?? 3;
@@ -116,7 +134,7 @@ function InputPage() {
       const payload: N8nWebhookPayload = {
         user_id: session.user.id,
         text: content.trim(),
-        image_url: imageDataUrl ?? "",
+        image_url: uploadedImageUrl,
         sleep_hours,
         energy_level,
         profile: {
