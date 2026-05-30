@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { analyzeEntry, getTodayEntry, saveN8nEntry } from "@/lib/analyze.functions";
+import { getTodayEntry, saveN8nEntry } from "@/lib/analyze.functions";
 import { setEmotionResult, type EmotionResult } from "@/lib/emotionResult";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
