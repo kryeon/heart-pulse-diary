@@ -383,12 +383,13 @@ function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initia
                           <div className="min-w-0 flex-1">
                             {kw ? (
                               <>
-                                <p className={`text-lg font-extrabold leading-tight ${tone.fg}`}>{kw}</p>
-                                <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{r}</p>
+                                <p className={`text-base font-semibold leading-tight ${tone.fg}`}>{kw}</p>
+                                <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">{r}</p>
                               </>
                             ) : (
-                              <p className={`text-sm font-semibold leading-snug ${tone.fg}`}>{r}</p>
+                              <p className={`text-sm font-medium leading-snug ${tone.fg}`}>{r}</p>
                             )}
+
                           </div>
                           <span className={`shrink-0 ${tone.arrow}`}>→</span>
                         </div>
