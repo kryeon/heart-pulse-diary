@@ -90,14 +90,10 @@ function hslToHex(h: number, s: number, l: number) {
   const k = (n: number) => (n + h / 30) % 12;
   const a = s * Math.min(l, 1 - l);
   const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-  const toHex = (x: number) => Math.round(Math.max(0, Math.min(1, f(n_to_idx(n_to_idx_unused = 0, x))))).toString();
-  // simple component
   const ch = (n: number) => Math.round(Math.max(0, Math.min(1, f(n))) * 255).toString(16).padStart(2, "0");
-  void toHex;
   return `#${ch(0)}${ch(8)}${ch(4)}`;
 }
-// helper noop to silence unused
-function n_to_idx(_a: number, b: number) { return b; }
+
 
 function CloudBlob({ color, spread, intensity }: { color: string; spread: MotionValue<number>; intensity: MotionValue<number>; }) {
   // Derive a small palette of analogous + complementary tints so the aurora
