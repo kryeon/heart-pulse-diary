@@ -1,10 +1,10 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getTodayEntry, saveN8nEntry } from "@/lib/analyze.functions";
 import { setEmotionResult, type EmotionResult } from "@/lib/emotionResult";
 import { useAuth } from "@/lib/auth-context";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, ImagePlus, Moon, Zap } from "lucide-react";
 import { toast } from "sonner";
@@ -30,7 +30,7 @@ function localDateStr() {
 
 function InputPage() {
   const navigate = useNavigate();
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const { session } = useAuth();
   const fetchToday = useServerFn(getTodayEntry);
   const saveEntry = useServerFn(saveN8nEntry);
@@ -160,9 +160,9 @@ function InputPage() {
 
       if (data?.success === false) throw new Error("분석에 실패했어요");
 
-      setEmotionResult(data);
+      const scopedEmotionResult = { ...data, user_id: session.user.id, entry_date: localDate };
+      setEmotionResult(scopedEmotionResult);
       try {
-        localStorage.setItem("latest_emotion_result", JSON.stringify(data));
         localStorage.setItem("latest_entry_id", (data as any)?.entry_id ?? "");
       } catch {}
 
@@ -170,15 +170,17 @@ function InputPage() {
       // screen reads back exactly the same values it just received.
       if (session?.access_token) {
         try {
-          await saveEntry({
+          const saved = await saveEntry({
             data: {
               local_date: localDate,
               content: content.trim(),
               image_url: uploadedImageUrl || null,
-              result: data as Record<string, any>,
+              result: scopedEmotionResult as Record<string, any>,
             },
           });
-          router.invalidate();
+          queryClient.setQueryData(["today", localDate, session.user.id], saved);
+          queryClient.setQueryData(["entry", session.user.id, localDate], saved);
+          queryClient.invalidateQueries({ queryKey: ["range", session.user.id] });
         } catch (e) {
           console.error("saveN8nEntry failed:", e);
         }

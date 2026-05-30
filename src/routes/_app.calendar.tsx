@@ -35,8 +35,8 @@ function CalendarPage() {
 
   const { from, to } = useMemo(() => monthBounds(cursor.y, cursor.m), [cursor]);
   const fetchRange = useServerFn(getEntriesInRange);
-  const { data: entries = [] } = useQuery({
-    queryKey: ["range", from, to],
+  const { data: entries = [], isLoading: entriesLoading } = useQuery({
+    queryKey: ["range", session?.user.id, from, to],
     queryFn: () => fetchRange({ data: { from, to } }),
     enabled: !!session?.access_token,
     retry: false,
@@ -54,7 +54,7 @@ function CalendarPage() {
   const prev = () => setCursor(({ y, m }) => m === 0 ? { y: y - 1, m: 11 } : { y, m: m - 1 });
   const next = () => setCursor(({ y, m }) => m === 11 ? { y: y + 1, m: 0 } : { y, m: m + 1 });
 
-  if (showStats) return <StatsPage onBack={() => setShowStats(false)} initialYear={cursor.y} initialMonth={cursor.m} />;
+  if (showStats) return <StatsPage onBack={() => setShowStats(false)} entries={entries} entriesLoading={entriesLoading} />;
 
   return (
     <div className="space-y-5 animate-float-up">
@@ -221,7 +221,22 @@ const REC_TONES = [
 ];
 
 
-function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initialMonth: number }) {
+type EntryRow = {
+  entry_date: string;
+  cognitive_load: number | null;
+  color_hex: string | null;
+  summary: string | null;
+};
+
+function StatsPage({
+  onBack,
+  entries,
+  entriesLoading,
+}: {
+  onBack: () => void;
+  entries: EntryRow[];
+  entriesLoading: boolean;
+}) {
   const { user } = useAuth();
   const translate = useServerFn(translateReport);
   const [loading, setLoading] = useState(false);
@@ -264,16 +279,16 @@ function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initia
   }, [user?.id, translate]);
 
   const chartData = useMemo(() => {
-    if (!reportData?.timeline) return [];
-    return reportData.timeline
+    return entries
       .slice()
-      .sort((a: any, b: any) => String(a.date).localeCompare(String(b.date)))
-      .map((t: any) => ({
-        date: String(t.date).slice(5),
+      .sort((a, b) => String(a.entry_date).localeCompare(String(b.entry_date)))
+      .map((t) => ({
+        date: String(t.entry_date).slice(5),
         load: t.cognitive_load,
-        color: t.hex_color,
-      }));
-  }, [reportData]);
+        color: t.color_hex,
+      }))
+      .filter((t) => typeof t.load === "number");
+  }, [entries]);
 
   return (
     <div className="space-y-5 animate-float-up pb-8">

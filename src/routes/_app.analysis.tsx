@@ -280,7 +280,7 @@ function AnalysisPage() {
   const fetchEntry = useServerFn(getTodayEntry);
   const targetDate = dateParam ?? localDateStr();
   const { data: entry, isLoading } = useQuery({
-    queryKey: ["entry", targetDate],
+    queryKey: ["entry", session?.user.id, targetDate],
     queryFn: () => fetchEntry({ data: { local_date: targetDate } }),
     enabled: !!session?.access_token,
     retry: false,
@@ -303,8 +303,15 @@ function AnalysisPage() {
 
   const [emotionResult, setEmotionResultState] = useState<EmotionResult | null>(null);
   useEffect(() => {
-    setEmotionResultState(getEmotionResult());
-    const sync = () => setEmotionResultState(getEmotionResult());
+    const sync = () => {
+      const latest = getEmotionResult();
+      const owner = (latest as any)?.user_id;
+      const resultDate = (latest as any)?.entry_date ?? (latest as any)?.calendar_marker?.date;
+      const sameUser = !owner || owner === session?.user.id;
+      const sameDate = !resultDate || resultDate === targetDate;
+      setEmotionResultState(sameUser && sameDate ? latest : null);
+    };
+    sync();
     if (typeof window === "undefined") return;
     window.addEventListener("emotionResult:update", sync);
     window.addEventListener("storage", sync);
@@ -312,7 +319,7 @@ function AnalysisPage() {
       window.removeEventListener("emotionResult:update", sync);
       window.removeEventListener("storage", sync);
     };
-  }, []);
+  }, [session?.user.id, targetDate]);
 
   useEffect(() => {
     if (!isLoading && !entry && !emotionResult) navigate({ to: "/", replace: true });
