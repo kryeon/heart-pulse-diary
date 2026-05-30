@@ -249,6 +249,31 @@ function localDateStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+// Map the n8n webhook response into the same shape used by the existing UI.
+function n8nResultToEntry(result: EmotionResult, fallbackDate: string) {
+  const mind = (result.mind_light ?? {}) as Record<string, any>;
+  const card = (result.card ?? {}) as Record<string, any>;
+  const emotion = (result.emotion ?? {}) as Record<string, any>;
+  const routines = Array.isArray(result.routines) ? result.routines : [];
+  const entryDate =
+    (result as any).entry_date ?? (result as any).calendar_marker?.date ?? fallbackDate;
+
+  return {
+    entry_date: entryDate,
+    color_hex: mind.hex_color ?? "#c8b6ff",
+    summary: card.one_line_summary ?? card.title ?? "오늘의 마음을 기록했어요",
+    cognitive_load:
+      typeof emotion.cognitive_load === "number"
+        ? emotion.cognitive_load
+        : typeof mind.strength === "number"
+          ? mind.strength
+          : 0,
+    unconscious: card.summary ?? emotion.emotion_flow ?? "",
+    routines,
+  };
+}
+
+
 function AnalysisPage() {
   const { date: dateParam } = Route.useSearch();
   const { session } = useAuth();
