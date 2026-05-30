@@ -8,6 +8,7 @@ import { Brain, Download, Sparkles } from "lucide-react";
 import { toPng } from "html-to-image";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion";
+import { getEmotionResult, type EmotionResult } from "@/lib/emotionResult";
 
 export const Route = createFileRoute("/_app/analysis")({
   head: () => ({ meta: [{ title: "오늘의 분석 · 마음결" }] }),
