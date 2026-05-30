@@ -7,6 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Sparkles, ImagePlus, Moon, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { WheelPicker } from "@/components/WheelPicker";
+
 
 export const Route = createFileRoute("/_app/")({
   head: () => ({ meta: [{ title: "오늘 하루 · 마음결" }] }),
@@ -37,7 +39,9 @@ function InputPage() {
   const [busy, setBusy] = useState(false);
   const [sleepHour, setSleepHour] = useState<number | null>(null);
   const [sleepDecimal, setSleepDecimal] = useState<number | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [energyLevel, setEnergyLevel] = useState<number | null>(null);
+
 
   // Navigate to analysis only after the today-check completes
   useEffect(() => {
@@ -140,27 +144,33 @@ function InputPage() {
               placeholder="0"
               className="w-16 h-12 rounded-2xl border border-input bg-transparent px-2 text-center text-lg font-semibold outline-none focus-visible:ring-1 focus-visible:ring-ring [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
-            <span className="text-lg font-bold text-muted-foreground">.</span>
-            <div className="flex-1 grid grid-cols-5 gap-1.5">
-              {Array.from({ length: 10 }, (_, i) => i).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setSleepDecimal(n)}
-                  className={cn(
-                    "h-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer",
-                    sleepDecimal === n
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  )}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
+            <span className="text-2xl font-bold text-muted-foreground leading-none pb-1">.</span>
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className={cn(
+                "w-16 h-12 rounded-2xl border border-input bg-transparent text-center text-lg font-semibold outline-none transition",
+                "hover:border-primary/50 focus-visible:ring-1 focus-visible:ring-ring",
+                sleepDecimal === null && "text-muted-foreground"
+              )}
+              aria-label="소수점 선택"
+            >
+              {sleepDecimal ?? 0}
+            </button>
             <span className="text-sm text-muted-foreground font-medium shrink-0">시간</span>
           </div>
+          {pickerOpen && (
+            <WheelPicker
+              value={sleepDecimal ?? 0}
+              min={0}
+              max={9}
+              label="소수점 선택"
+              onChange={(n) => setSleepDecimal(n)}
+              onClose={() => setPickerOpen(false)}
+            />
+          )}
         </div>
+
 
         {/* 에너지 레벨 */}
         <div>

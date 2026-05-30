@@ -66,58 +66,103 @@ function SmoothSlider({
   );
 }
 
-function CloudBlob({ color, spread, intensity }: { color: string; spread: MotionValue<number>; intensity: MotionValue<number>; }) {
-  const size = useTransform(spread, (s) => 90 + s * 1.2);
-  const blur = useTransform(spread, (s) => Math.max(2, (s - 20) * 0.4));
-  const opacity = useTransform(intensity, (i) => 0.35 + (i / 100) * 0.6);
-  const haloBlur = useTransform(spread, (s) => Math.max(16, (s - 10) * 0.6 + 16));
-  const haloOpacity = useTransform(intensity, (i) => 0.15 + (i / 100) * 0.3);
+function hexToHsl(hex: string) {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.slice(0, 2), 16) / 255;
+  const g = parseInt(h.slice(2, 4), 16) / 255;
+  const b = parseInt(h.slice(4, 6), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let hh = 0, s = 0; const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: hh = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: hh = (b - r) / d + 2; break;
+      case b: hh = (r - g) / d + 4; break;
+    }
+    hh *= 60;
+  }
+  return { h: hh, s: s * 100, l: l * 100 };
+}
+function hslToHex(h: number, s: number, l: number) {
+  s /= 100; l /= 100;
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  const ch = (n: number) => Math.round(Math.max(0, Math.min(1, f(n))) * 255).toString(16).padStart(2, "0");
+  return `#${ch(0)}${ch(8)}${ch(4)}`;
+}
 
-  const morphRadii = [
-    "30% 70% 70% 30% / 30% 30% 70% 70%",
-    "60% 40% 30% 70% / 60% 30% 70% 40%",
-    "45% 55% 65% 35% / 50% 65% 35% 50%",
-    "70% 30% 50% 50% / 40% 60% 40% 60%",
-    "30% 70% 70% 30% / 30% 30% 70% 70%",
+
+function CloudBlob({ color, spread, intensity }: { color: string; spread: MotionValue<number>; intensity: MotionValue<number>; }) {
+  // Derive a small palette of analogous + complementary tints so the aurora
+  // contains "all emotion colors blended in proportion" while staying anchored
+  // to the day's signature hue.
+  const { h, s, l } = hexToHsl(color);
+  const palette = [
+    color,
+    hslToHex((h + 30) % 360, Math.min(s + 5, 90), Math.min(l + 6, 92)),
+    hslToHex((h - 30 + 360) % 360, Math.min(s + 5, 90), Math.min(l + 8, 92)),
+    hslToHex((h + 60) % 360, Math.max(s - 10, 30), Math.min(l + 4, 90)),
+    hslToHex((h - 60 + 360) % 360, Math.max(s - 10, 30), Math.min(l + 4, 90)),
+    hslToHex((h + 180) % 360, Math.max(s - 25, 25), Math.min(l + 10, 92)),
   ];
-  const puffs = [
-    { x: 0, y: 0, scale: 1.0, dur: 11 },
-    { x: -40, y: -8, scale: 0.7, dur: 13 },
-    { x: 38, y: -14, scale: 0.66, dur: 14 },
-    { x: -22, y: 22, scale: 0.56, dur: 12 },
-    { x: 30, y: 26, scale: 0.6, dur: 15 },
-    { x: 0, y: -32, scale: 0.48, dur: 10 },
+
+  // spread → blob size & blur, intensity → opacity
+  const baseOpacity = useTransform(intensity, (i) => 0.35 + (i / 100) * 0.45);
+  const sizeScale = useTransform(spread, (sp) => 0.85 + (sp / 100) * 0.4);
+  const blurAmt = useTransform(spread, (sp) => 28 + (sp / 100) * 22);
+
+  // Six blobs distributed around the square that drift slowly on independent
+  // orbits. All drift values stay well inside the container so puffs never
+  // spill past the rounded edge (the parent also clips with overflow-hidden).
+  const blobs = [
+    { cx: 28, cy: 32, sz: 170, dur: 26, path: { x: [0, 14, -10, 8, 0], y: [0, -10, 12, -8, 0] } },
+    { cx: 72, cy: 28, sz: 190, dur: 30, path: { x: [0, -12, 10, -6, 0], y: [0, 12, -8, 10, 0] } },
+    { cx: 65, cy: 70, sz: 200, dur: 34, path: { x: [0, 10, -14, 6, 0], y: [0, -8, 10, -12, 0] } },
+    { cx: 30, cy: 72, sz: 180, dur: 32, path: { x: [0, -8, 12, -10, 0], y: [0, 10, -10, 8, 0] } },
+    { cx: 50, cy: 48, sz: 220, dur: 38, path: { x: [0, 6, -8, 10, 0], y: [0, -6, 8, -4, 0] } },
+    { cx: 50, cy: 88, sz: 150, dur: 28, path: { x: [0, -10, 8, -6, 0], y: [0, 6, -10, 4, 0] } },
   ];
 
   return (
-    <div className="relative w-full h-full grid place-items-center pointer-events-none">
-      <motion.div className="absolute" style={{
-        width: size, height: size, backgroundColor: color,
-        filter: useTransform(haloBlur, (b) => `blur(${b}px)`),
-        opacity: haloOpacity, scale: 1.3, borderRadius: "50%",
-      }} animate={{ x: [0, -6, 5, 0], y: [0, 4, -5, 0] }} transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }} />
-      {puffs.map((p, i) => (
-        <motion.div key={i} className="absolute" style={{
-          width: useTransform(size, (s) => s * p.scale),
-          height: useTransform(size, (s) => s * p.scale),
-          backgroundColor: color, opacity,
-          filter: useTransform(blur, (b) => `blur(${b}px)`),
-        }} animate={{
-          x: [p.x, p.x + 8, p.x - 6, p.x + 4, p.x],
-          y: [p.y, p.y - 7, p.y + 5, p.y - 3, p.y],
-          borderRadius: morphRadii, rotate: [0, 6, -4, 3, 0],
-        }} transition={{ duration: p.dur, repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }} />
+    <div className="relative w-full h-full pointer-events-none">
+      {blobs.map((b, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            left: `${b.cx}%`,
+            top: `${b.cy}%`,
+            width: useTransform(sizeScale, (k) => b.sz * k),
+            height: useTransform(sizeScale, (k) => b.sz * k),
+            x: useTransform(sizeScale, (k) => -(b.sz * k) / 2),
+            y: useTransform(sizeScale, (k) => -(b.sz * k) / 2),
+            background: `radial-gradient(circle at 50% 50%, ${palette[i % palette.length]} 0%, ${palette[i % palette.length]}99 35%, transparent 72%)`,
+            filter: useTransform(blurAmt, (v) => `blur(${v}px)`),
+            mixBlendMode: "screen",
+            opacity: baseOpacity,
+          }}
+          animate={b.path}
+          transition={{ duration: b.dur, repeat: Infinity, ease: "easeInOut" }}
+        />
       ))}
-      <motion.div className="absolute" style={{
-        width: useTransform(size, (s) => s * 0.45),
-        height: useTransform(size, (s) => s * 0.45),
-        backgroundColor: "#ffffff", opacity: 0.22,
-        filter: useTransform(blur, (b) => `blur(${b * 0.6 + 8}px)`),
-      }} animate={{ x: [-15, -10, -18, -15], y: [-20, -25, -18, -20], borderRadius: morphRadii }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }} />
+      {/* gentle inner haze that very slowly orbits the whole stage */}
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          background: `conic-gradient(from 0deg, ${palette[0]}33, ${palette[2]}22, ${palette[4]}22, ${palette[5]}22, ${palette[1]}33, ${palette[0]}33)`,
+          filter: "blur(40px)",
+          opacity: 0.45,
+        }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+      />
     </div>
   );
 }
+
 
 function localDateStr() {
   const d = new Date();
