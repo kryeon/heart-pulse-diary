@@ -41,6 +41,7 @@ function CalendarPage() {
     queryFn: () => fetchRange({ data: { from, to } }),
     enabled: !!session?.access_token,
     retry: false,
+    placeholderData: (prev) => prev,
   });
 
   const byDate = useMemo(() => {
