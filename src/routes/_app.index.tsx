@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeEntry, getTodayEntry } from "@/lib/analyze.functions";
 import { setEmotionResult, type EmotionResult } from "@/lib/emotionResult";
-import { sendN8nWebhook } from "@/lib/n8n.functions";
-import type { N8nWebhookPayload } from "@/lib/n8n";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,7 +34,7 @@ function InputPage() {
   const { session } = useAuth();
   const fetchToday = useServerFn(getTodayEntry);
   const analyze = useServerFn(analyzeEntry);
-  const sendWebhook = useServerFn(sendN8nWebhook);
+  
   const localDate = localDateStr();
   const { data: today, isLoading, isFetching } = useQuery({
     queryKey: ["today", localDate, session?.user.id],
@@ -131,24 +129,32 @@ function InputPage() {
         sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : 7;
       const energy_level = energyLevel ?? 3;
 
-      const payload: N8nWebhookPayload = {
+      const payload = {
         user_id: session.user.id,
+        entry_date: localDate,
         text: content.trim(),
         image_url: uploadedImageUrl,
-        sleep_hours,
-        energy_level,
         profile: {
           nickname: "ewha",
           age_group: 20,
           main_stress_area: "학업",
           preferred_tone: "calm",
         },
+        sleep_hours,
+        energy_level,
       };
 
       console.log("Sending payload:", payload);
 
-      const data = await sendWebhook({ data: payload }) as EmotionResult & { success?: boolean; entry_id?: string };
+      const res = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`분석 요청 실패: ${res.status}`);
+      const data = (await res.json()) as EmotionResult & { success?: boolean; entry_id?: string };
       console.log("n8n response:", data);
+
 
       if (data?.success === false) throw new Error("분석에 실패했어요");
 
