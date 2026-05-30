@@ -177,11 +177,11 @@ function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-const INSIGHT_TONES: Record<string, { label: string; chip: string }> = {
-  pattern: { label: "text-indigo-500", chip: "bg-indigo-50 text-indigo-600" },
-  load: { label: "text-rose-500", chip: "bg-rose-50 text-rose-600" },
-  trigger: { label: "text-orange-500", chip: "bg-orange-50 text-orange-600" },
-  recovery: { label: "text-teal-500", chip: "bg-teal-50 text-teal-600" },
+const INSIGHT_TONES: Record<string, { chip: string }> = {
+  pattern: { chip: "bg-[#F2EEFF] text-[#7D6FB3]" },
+  load: { chip: "bg-[#FFF0F2] text-[#B07A86]" },
+  trigger: { chip: "bg-[#FFF4EA] text-[#B68A63]" },
+  recovery: { chip: "bg-[#EEF7F2] text-[#6F9A87]" },
 };
 
 function InsightBlock({
@@ -198,27 +198,28 @@ function InsightBlock({
   if (!text && (!keywords || keywords.length === 0)) return null;
   const t = INSIGHT_TONES[tone];
   return (
-    <div className="rounded-3xl bg-card border border-border/60 p-4 space-y-2 shadow-sm">
-      <p className={`text-[11px] font-bold tracking-wider uppercase ${t.label}`}>{label}</p>
+    <div className="rounded-3xl bg-card/80 border border-border/30 p-4 space-y-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+      <p className="text-[11px] font-medium tracking-wider text-muted-foreground/90">{label}</p>
       {keywords && keywords.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {keywords.map((k, i) => (
-            <span key={i} className={`px-3 py-1 rounded-full text-sm font-bold ${t.chip}`}>
+            <span key={i} className={`px-3 py-1 rounded-full text-sm font-medium ${t.chip}`}>
               {k}
             </span>
           ))}
         </div>
       )}
-      {text && <p className="text-xs text-muted-foreground leading-snug">{text}</p>}
+      {text && <p className="text-xs text-muted-foreground leading-relaxed">{text}</p>}
     </div>
   );
 }
 
 const REC_TONES = [
-  { bg: "bg-[#f4f2ff]", fg: "text-[#7c66ff]", arrow: "text-indigo-300" },
-  { bg: "bg-[#f1f8f6]", fg: "text-[#4ea18c]", arrow: "text-teal-300" },
-  { bg: "bg-[#fff5f2]", fg: "text-[#ff8e6e]", arrow: "text-orange-300" },
+  { bg: "bg-[#F2EEFF]", fg: "text-[#7D6FB3]", arrow: "text-[#7D6FB3]/40" },
+  { bg: "bg-[#EEF7F2]", fg: "text-[#6F9A87]", arrow: "text-[#6F9A87]/40" },
+  { bg: "bg-[#FFF4EA]", fg: "text-[#B68A63]", arrow: "text-[#B68A63]/40" },
 ];
+
 
 function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initialMonth: number }) {
   const { user } = useAuth();
@@ -382,12 +383,13 @@ function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initia
                           <div className="min-w-0 flex-1">
                             {kw ? (
                               <>
-                                <p className={`text-lg font-extrabold leading-tight ${tone.fg}`}>{kw}</p>
-                                <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{r}</p>
+                                <p className={`text-base font-semibold leading-tight ${tone.fg}`}>{kw}</p>
+                                <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">{r}</p>
                               </>
                             ) : (
-                              <p className={`text-sm font-semibold leading-snug ${tone.fg}`}>{r}</p>
+                              <p className={`text-sm font-medium leading-snug ${tone.fg}`}>{r}</p>
                             )}
+
                           </div>
                           <span className={`shrink-0 ${tone.arrow}`}>→</span>
                         </div>
