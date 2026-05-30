@@ -371,7 +371,7 @@ function EmotionResultView({ result }: { result: EmotionResult }) {
   const card = (result.card ?? {}) as Record<string, any>;
   const emotion = (result.emotion ?? {}) as Record<string, any>;
   const routines = (result.routines ?? []) as Array<{ title: string; description: string }>;
-  const color = mind.color_hex ?? "#c8b6ff";
+  const color = mind.hex_color ?? "#c8b6ff";
   const fg = readableOn(color);
 
   return (
@@ -381,42 +381,53 @@ function EmotionResultView({ result }: { result: EmotionResult }) {
         <h1 className="mt-1 text-2xl font-bold">오늘 마음의 빛</h1>
       </header>
 
-      {/* mind_light */}
-      <section className="rounded-3xl p-6 shadow-sm" style={{ backgroundColor: color, color: fg }}>
-        <p className="text-[11px] opacity-70 tracking-widest">MIND LIGHT</p>
-        <p className="mt-1 text-2xl font-bold">{mind.label ?? "오늘의 빛"}</p>
-        <p className="mt-1 text-[11px] font-mono opacity-70">{String(color).toUpperCase()}</p>
+      {/* mind_light blob */}
+      <section className="rounded-3xl p-6 shadow-sm flex items-center gap-4" style={{ backgroundColor: color, color: fg }}>
+        <div
+          className="h-16 w-16 rounded-full shrink-0 shadow-inner"
+          style={{ backgroundColor: color, boxShadow: `0 0 32px ${color}` }}
+          aria-label="mind light blob"
+        />
+        <div>
+          <p className="text-[11px] opacity-70 tracking-widest">MIND LIGHT</p>
+          <p className="mt-1 text-[11px] font-mono opacity-80">{String(color).toUpperCase()}</p>
+        </div>
       </section>
 
       {/* card */}
-      {(card.summary || card.unconscious || card.cognitive_load !== undefined) && (
+      {(card.title || card.one_line_summary || card.summary) && (
         <section className="rounded-3xl bg-card border border-border p-5 shadow-sm space-y-3">
           <p className="text-xs font-semibold text-muted-foreground tracking-widest">CARD</p>
-          {card.summary && <p className="text-lg font-bold leading-snug">{card.summary}</p>}
-          {card.cognitive_load !== undefined && (
-            <div>
-              <p className="text-[11px] text-muted-foreground">인지부하도</p>
-              <p className="text-2xl font-bold">{card.cognitive_load}%</p>
-            </div>
+          {card.title && <p className="text-xl font-bold leading-snug">{card.title}</p>}
+          {card.one_line_summary && (
+            <p className="text-sm text-muted-foreground">{card.one_line_summary}</p>
           )}
-          {card.unconscious && (
-            <p className="text-sm leading-relaxed text-muted-foreground">{card.unconscious}</p>
+          {card.summary && (
+            <p className="text-sm leading-relaxed">{card.summary}</p>
           )}
         </section>
       )}
 
       {/* emotion */}
-      {(emotion.primary || (Array.isArray(emotion.secondary) && emotion.secondary.length > 0)) && (
-        <section className="rounded-3xl bg-card border border-border p-5 shadow-sm">
+      {(emotion.primary_emotion || emotion.emotion_flow || emotion.cognitive_load !== undefined) && (
+        <section className="rounded-3xl bg-card border border-border p-5 shadow-sm space-y-3">
           <p className="text-xs font-semibold text-muted-foreground tracking-widest">EMOTION</p>
-          {emotion.primary && (
-            <p className="mt-2 text-xl font-bold">{emotion.primary}</p>
+          {emotion.primary_emotion && (
+            <div>
+              <p className="text-[11px] text-muted-foreground">대표 감정</p>
+              <p className="text-xl font-bold">{emotion.primary_emotion}</p>
+            </div>
           )}
-          {Array.isArray(emotion.secondary) && emotion.secondary.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {emotion.secondary.map((s: string, i: number) => (
-                <span key={i} className="rounded-full bg-secondary text-secondary-foreground px-3 py-1 text-xs">{s}</span>
-              ))}
+          {emotion.emotion_flow && (
+            <div>
+              <p className="text-[11px] text-muted-foreground">감정 흐름</p>
+              <p className="text-sm leading-relaxed">{emotion.emotion_flow}</p>
+            </div>
+          )}
+          {emotion.cognitive_load !== undefined && (
+            <div>
+              <p className="text-[11px] text-muted-foreground">인지 부하</p>
+              <p className="text-2xl font-bold">{emotion.cognitive_load}{typeof emotion.cognitive_load === "number" ? "%" : ""}</p>
             </div>
           )}
         </section>
@@ -427,7 +438,7 @@ function EmotionResultView({ result }: { result: EmotionResult }) {
         <section>
           <h2 className="text-sm font-semibold mb-3">오늘의 추천 루틴</h2>
           <div className="space-y-2.5">
-            {routines.map((r, i) => (
+            {routines.slice(0, 3).map((r, i) => (
               <div key={i} className="rounded-2xl bg-card border border-border p-4 flex items-start gap-3">
                 <div className="h-9 w-9 shrink-0 rounded-2xl bg-secondary flex items-center justify-center text-secondary-foreground font-bold text-sm">
                   {i + 1}
