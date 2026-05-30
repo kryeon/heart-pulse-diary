@@ -165,10 +165,11 @@ function InputPage() {
               min={0}
               max={9}
               label="소수점 선택"
-              onChange={(n) => setSleepDecimal(n)}
+              onConfirm={(n) => setSleepDecimal(n)}
               onClose={() => setPickerOpen(false)}
             />
           )}
+
         </div>
 
 
