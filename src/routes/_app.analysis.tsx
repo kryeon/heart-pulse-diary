@@ -10,6 +10,7 @@ import * as SliderPrimitive from "@radix-ui/react-slider";
 import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion";
 import { getEmotionResult, type EmotionResult } from "@/lib/emotionResult";
 import { SynclrWordmark } from "@/components/AppShell";
+import { TriangleBack } from "@/components/TriangleBack";
 
 export const Route = createFileRoute("/_app/analysis")({
   head: () => ({ meta: [{ title: "오늘의 분석 · Syncl\u0023r" }] }),
