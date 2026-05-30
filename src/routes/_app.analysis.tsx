@@ -363,7 +363,7 @@ function AnalysisPage() {
         </div>
       )}
       <header className="text-center pt-2">
-        <p className="text-xs text-muted-foreground tracking-wider">{dateParam ? view.entry_date : "TODAY'S MIND"}</p>
+        <p className="text-xs text-muted-foreground tracking-wider">{dateParam ? view.entry_date : "오늘의 마음"}</p>
         <h1 className="mt-1 text-2xl font-bold">{dateParam ? "그 날의 마음의 빛" : "오늘 마음의 빛"}</h1>
       </header>
 
