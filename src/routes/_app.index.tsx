@@ -39,10 +39,11 @@ function InputPage() {
 
   
   const localDate = localDateStr();
-  const { data: today, isLoading, isFetching } = useQuery({
+  const { data: today, isLoading } = useQuery({
     queryKey: ["today", localDate, session?.user.id],
     queryFn: () => fetchToday({ data: { local_date: localDate } }),
     enabled: !!session?.access_token,
+    placeholderData: (prev) => prev,
   });
 
   const [content, setContent] = useState("");
@@ -57,13 +58,13 @@ function InputPage() {
 
   // Navigate to analysis only after the today-check completes
   useEffect(() => {
-    if (!isLoading && !isFetching && today) {
+    if (!isLoading && today) {
       navigate({ to: "/analysis", replace: true });
     }
-  }, [isLoading, isFetching, today, navigate]);
+  }, [isLoading, today, navigate]);
 
-  // While checking, analyzing, or about to redirect, show a full-screen breathing signature loader
-  if (isLoading || isFetching || today || busy) {
+  // Only show the full-screen loader when we have no cached data yet (avoid flash on revisit)
+  if (isLoading || today || busy) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center gap-5">
         <div className="relative">
