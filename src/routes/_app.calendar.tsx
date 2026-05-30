@@ -177,15 +177,48 @@ function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-function InsightBlock({ label, text }: { label: string; text?: string }) {
-  if (!text) return null;
+const INSIGHT_TONES: Record<string, { label: string; chip: string }> = {
+  pattern: { label: "text-indigo-500", chip: "bg-indigo-50 text-indigo-600" },
+  load: { label: "text-rose-500", chip: "bg-rose-50 text-rose-600" },
+  trigger: { label: "text-orange-500", chip: "bg-orange-50 text-orange-600" },
+  recovery: { label: "text-teal-500", chip: "bg-teal-50 text-teal-600" },
+};
+
+function InsightBlock({
+  label,
+  text,
+  keywords,
+  tone = "pattern",
+}: {
+  label: string;
+  text?: string;
+  keywords?: string[];
+  tone?: keyof typeof INSIGHT_TONES;
+}) {
+  if (!text && (!keywords || keywords.length === 0)) return null;
+  const t = INSIGHT_TONES[tone];
   return (
-    <div className="rounded-2xl bg-card border border-border p-4">
-      <p className="text-[11px] text-muted-foreground tracking-wider mb-1.5">{label}</p>
-      <p className="text-sm leading-relaxed">{text}</p>
+    <div className="rounded-3xl bg-card border border-border/60 p-4 space-y-2 shadow-sm">
+      <p className={`text-[11px] font-bold tracking-wider uppercase ${t.label}`}>{label}</p>
+      {keywords && keywords.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {keywords.map((k, i) => (
+            <span key={i} className={`px-3 py-1 rounded-full text-sm font-bold ${t.chip}`}>
+              {k}
+            </span>
+          ))}
+        </div>
+      )}
+      {text && <p className="text-xs text-muted-foreground leading-snug">{text}</p>}
     </div>
   );
 }
+
+const REC_TONES = [
+  { bg: "bg-[#f4f2ff]", fg: "text-[#7c66ff]", arrow: "text-indigo-300" },
+  { bg: "bg-[#f1f8f6]", fg: "text-[#4ea18c]", arrow: "text-teal-300" },
+  { bg: "bg-[#fff5f2]", fg: "text-[#ff8e6e]", arrow: "text-orange-300" },
+];
 
 function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initialMonth: number }) {
   const { user } = useAuth();
