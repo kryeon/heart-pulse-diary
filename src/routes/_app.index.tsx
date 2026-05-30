@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { analyzeEntry, getTodayEntry } from "@/lib/analyze.functions";
+import { getTodayEntry, saveN8nEntry } from "@/lib/analyze.functions";
 import { setEmotionResult, type EmotionResult } from "@/lib/emotionResult";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
@@ -33,7 +33,9 @@ function InputPage() {
   const router = useRouter();
   const { session } = useAuth();
   const fetchToday = useServerFn(getTodayEntry);
-  const analyze = useServerFn(analyzeEntry);
+  const saveEntry = useServerFn(saveN8nEntry);
+
+
   
   const localDate = localDateStr();
   const { data: today, isLoading, isFetching } = useQuery({
@@ -164,14 +166,26 @@ function InputPage() {
         localStorage.setItem("latest_entry_id", (data as any)?.entry_id ?? "");
       } catch {}
 
-      // Persist to DB in background so calendar/history still works.
+      // Persist the n8n result to DB BEFORE navigating, so the analysis
+      // screen reads back exactly the same values it just received.
       if (session?.access_token) {
-        analyze({ data: { content: content.trim(), image_url: imageDataUrl, local_date: localDate } })
-          .then(() => router.invalidate())
-          .catch(() => {});
+        try {
+          await saveEntry({
+            data: {
+              local_date: localDate,
+              content: content.trim(),
+              image_url: uploadedImageUrl || null,
+              result: data as Record<string, any>,
+            },
+          });
+          router.invalidate();
+        } catch (e) {
+          console.error("saveN8nEntry failed:", e);
+        }
       }
 
       navigate({ to: "/analysis" });
+
     } catch (error: any) {
       console.error("Webhook fetch error:", error);
       toast.error(error?.message ?? "분석에 실패했어요");

@@ -125,6 +125,79 @@ export const getTodayEntry = createServerFn({ method: "POST" })
     return row;
   });
 
+// Persist the raw n8n webhook result into the entries table so the
+// analysis screen reads back exactly the same values it just displayed.
+export const saveN8nEntry = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: {
+    local_date: string;
+    content: string;
+    image_url?: string | null;
+    result: Record<string, any>;
+  }) =>
+    z.object({
+      local_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      content: z.string().min(1).max(5000),
+      image_url: z.string().nullable().optional(),
+      result: z.record(z.any()),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const r = data.result ?? {};
+    const mind = (r.mind_light ?? {}) as Record<string, any>;
+    const card = (r.card ?? {}) as Record<string, any>;
+    const emotion = (r.emotion ?? {}) as Record<string, any>;
+    const routines = Array.isArray(r.routines) ? r.routines : [];
+
+    const row = {
+      user_id: userId,
+      entry_date: data.local_date,
+      content: data.content,
+      image_url: data.image_url ?? null,
+      summary: card.one_line_summary ?? card.title ?? "오늘의 마음을 기록했어요",
+      cognitive_load:
+        typeof emotion.cognitive_load === "number"
+          ? emotion.cognitive_load
+          : typeof mind.strength === "number"
+            ? mind.strength
+            : 0,
+      unconscious: card.summary ?? emotion.emotion_flow ?? "",
+      color_hex: mind.hex_color ?? "#c8b6ff",
+      emotion_score:
+        typeof emotion.emotion_score === "number" ? emotion.emotion_score : 60,
+      routines,
+    };
+
+    const { data: existing } = await supabase
+      .from("entries")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("entry_date", data.local_date)
+      .maybeSingle();
+
+    if (existing?.id) {
+      const { data: updated, error } = await supabase
+        .from("entries")
+        .update(row)
+        .eq("id", existing.id)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return updated;
+    }
+
+    const { data: inserted, error } = await supabase
+      .from("entries")
+      .insert(row)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return inserted;
+  });
+
+
+
 
 export const getEntriesInRange = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
