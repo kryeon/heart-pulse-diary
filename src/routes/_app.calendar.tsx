@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { getEntriesInRange } from "@/lib/analyze.functions";
+import { translateReport } from "@/lib/translate.functions";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight, BarChart3, Loader2 } from "lucide-react";
