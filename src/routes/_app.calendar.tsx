@@ -35,8 +35,8 @@ function CalendarPage() {
 
   const { from, to } = useMemo(() => monthBounds(cursor.y, cursor.m), [cursor]);
   const fetchRange = useServerFn(getEntriesInRange);
-  const { data: entries = [] } = useQuery({
-    queryKey: ["range", from, to],
+  const { data: entries = [], isLoading: entriesLoading } = useQuery({
+    queryKey: ["range", session?.user.id, from, to],
     queryFn: () => fetchRange({ data: { from, to } }),
     enabled: !!session?.access_token,
     retry: false,
@@ -54,7 +54,7 @@ function CalendarPage() {
   const prev = () => setCursor(({ y, m }) => m === 0 ? { y: y - 1, m: 11 } : { y, m: m - 1 });
   const next = () => setCursor(({ y, m }) => m === 11 ? { y: y + 1, m: 0 } : { y, m: m + 1 });
 
-  if (showStats) return <StatsPage onBack={() => setShowStats(false)} initialYear={cursor.y} initialMonth={cursor.m} />;
+  if (showStats) return <StatsPage onBack={() => setShowStats(false)} entries={entries} entriesLoading={entriesLoading} />;
 
   return (
     <div className="space-y-5 animate-float-up">
