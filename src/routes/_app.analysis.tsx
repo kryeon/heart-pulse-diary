@@ -286,6 +286,7 @@ function AnalysisPage() {
     queryFn: () => fetchEntry({ data: { local_date: targetDate } }),
     enabled: !!session?.access_token,
     retry: false,
+    placeholderData: (prev) => prev,
   });
   const navigate = useNavigate();
 
