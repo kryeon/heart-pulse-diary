@@ -86,6 +86,7 @@ function InputPage() {
     const f = e.target.files?.[0];
     if (!f) return;
     if (f.size > 2_000_000) { toast.error("2MB 이하 이미지를 올려주세요"); return; }
+    setSelectedFile(f);
     const r = new FileReader();
     r.onload = () => setImageDataUrl(r.result as string);
     r.readAsDataURL(f);
