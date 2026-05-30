@@ -2,12 +2,10 @@ export interface N8nWebhookPayload {
   [key: string]: unknown;
 }
 
-export async function callN8n(payload: N8nWebhookPayload): Promise<unknown> {
-  const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
+const DEFAULT_WEBHOOK_URL = "http://localhost:5678/webhook/app";
 
-  if (!webhookUrl) {
-    throw new Error("VITE_N8N_WEBHOOK_URL is not defined");
-  }
+export async function callN8n(payload: N8nWebhookPayload): Promise<unknown> {
+  const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || DEFAULT_WEBHOOK_URL;
 
   const response = await fetch(webhookUrl, {
     method: "POST",
