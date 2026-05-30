@@ -10,11 +10,16 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link to="/" className="inline-flex items-center gap-2 group">
           <img
             src={logo}
-            alt="Synclr"
+            alt={"Syncl\u0023r"}
             className="h-8 w-8 rounded-lg object-cover shadow-sm group-active:scale-95 transition-transform"
           />
-          <span className="text-base font-bold tracking-tight bg-gradient-to-r from-[#c4a8ff] via-[#ff9eb5] to-[#ffd28a] bg-clip-text text-transparent">
-            Synclr
+          <span
+            className="text-base font-bold bg-gradient-to-r from-[#c4a8ff] via-[#ff9eb5] to-[#ffd28a] bg-clip-text text-transparent"
+            style={{ letterSpacing: "-0.01em", lineHeight: 1 }}
+          >
+            {"Syncl"}
+            <span style={{ display: "inline-block", transform: "translateY(0.06em)", margin: "0 0.01em", fontWeight: 700 }}>{"\u0023"}</span>
+            {"r"}
           </span>
         </Link>
       </header>

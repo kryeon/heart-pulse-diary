@@ -64,13 +64,18 @@ function InputPage() {
           <div className="absolute inset-0 rounded-full animate-signature-glow" />
           <img
             src={logo}
-            alt="Synclr"
+            alt={"Syncl\u0023r"}
             className="relative h-24 w-24 rounded-2xl object-cover shadow-lg animate-breathe"
           />
 
         </div>
-        <p className="text-lg font-bold tracking-tight bg-gradient-to-r from-[#c4a8ff] via-[#ff9eb5] to-[#ffd28a] bg-clip-text text-transparent">
-          Synclr
+        <p
+          className="text-lg font-bold bg-gradient-to-r from-[#c4a8ff] via-[#ff9eb5] to-[#ffd28a] bg-clip-text text-transparent"
+          style={{ letterSpacing: "-0.01em", lineHeight: 1 }}
+        >
+          {"Syncl"}
+          <span style={{ display: "inline-block", transform: "translateY(0.06em)", margin: "0 0.02em" }}>{"\u0023"}</span>
+          {"r"}
         </p>
         <p className="text-sm text-muted-foreground animate-pulse">마음을 살피는 중…</p>
       </div>

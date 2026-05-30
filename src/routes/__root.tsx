@@ -52,8 +52,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Synclr · 오늘의 마음 분석" },
-      { name: "description", content: "지친 마음을 따뜻하게 들여다보는 감정 기록 다이어리, Synclr" },
+      { title: "Syncl\u0023r · 오늘의 마음 분석" },
+      { name: "description", content: "지친 마음을 따뜻하게 들여다보는 감정 기록 다이어리, Syncl\u0023r" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
