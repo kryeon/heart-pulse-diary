@@ -30,8 +30,10 @@ function localDateStr() {
 function InputPage() {
   const navigate = useNavigate();
   const router = useRouter();
+  const { user } = useAuth();
   const fetchToday = useServerFn(getTodayEntry);
   const analyze = useServerFn(analyzeEntry);
+  const fetchProfile = useServerFn(getMyProfile);
   const localDate = localDateStr();
   const { data: today, isLoading, isFetching } = useQuery({
     queryKey: ["today", localDate],
@@ -90,16 +92,29 @@ function InputPage() {
     if (!content.trim()) { toast.error("오늘의 마음을 한 줄이라도 적어주세요"); return; }
     setBusy(true);
     try {
-      callN8n({
-        content: content.trim(),
-        image_url: imageDataUrl,
-        local_date: localDate,
-        sleep_hours: sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : null,
-        energy_level: energyLevel,
-      }).catch(() => {});
+      const sleep_hours =
+        sleepHour !== null ? sleepHour + (sleepDecimal ?? 0) / 10 : null;
 
-      await analyze({ data: { content: content.trim(), image_url: imageDataUrl, local_date: localDate } });
-      await router.invalidate();
+      let profile: unknown = null;
+      try { profile = await fetchProfile(); } catch {}
+
+      const result = (await createEmotion({
+        user_id: user?.id ?? null,
+        entry_date: localDate,
+        text: content.trim(),
+        image_url: imageDataUrl,
+        profile,
+        sleep_hours,
+        energy_level: energyLevel,
+      })) as EmotionResult;
+
+      setEmotionResult(result);
+
+      // Persist to DB in background so calendar/history still works.
+      analyze({ data: { content: content.trim(), image_url: imageDataUrl, local_date: localDate } })
+        .then(() => router.invalidate())
+        .catch(() => {});
+
       navigate({ to: "/analysis" });
     } catch (e: any) {
       toast.error(e.message ?? "분석에 실패했어요");
