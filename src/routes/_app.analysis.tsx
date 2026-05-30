@@ -249,6 +249,31 @@ function localDateStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+// Map the n8n webhook response into the same shape used by the existing UI.
+function n8nResultToEntry(result: EmotionResult, fallbackDate: string) {
+  const mind = (result.mind_light ?? {}) as Record<string, any>;
+  const card = (result.card ?? {}) as Record<string, any>;
+  const emotion = (result.emotion ?? {}) as Record<string, any>;
+  const routines = Array.isArray(result.routines) ? result.routines : [];
+  const entryDate =
+    (result as any).entry_date ?? (result as any).calendar_marker?.date ?? fallbackDate;
+
+  return {
+    entry_date: entryDate,
+    color_hex: mind.hex_color ?? "#c8b6ff",
+    summary: card.one_line_summary ?? card.title ?? "오늘의 마음을 기록했어요",
+    cognitive_load:
+      typeof emotion.cognitive_load === "number"
+        ? emotion.cognitive_load
+        : typeof mind.strength === "number"
+          ? mind.strength
+          : 0,
+    unconscious: card.summary ?? emotion.emotion_flow ?? "",
+    routines,
+  };
+}
+
+
 function AnalysisPage() {
   const { date: dateParam } = Route.useSearch();
   const { session } = useAuth();
@@ -297,13 +322,14 @@ function AnalysisPage() {
     return <div className="text-center text-muted-foreground text-sm pt-20">불러오는 중…</div>;
   }
 
-  if (!entry && emotionResult) {
-    return <EmotionResultView result={emotionResult} />;
-  }
-  if (!entry) return null;
+  // Build a synthetic entry from n8n result so we can reuse the original design
+  const synthetic = !entry && emotionResult ? n8nResultToEntry(emotionResult, targetDate) : null;
+  const view = (entry ?? synthetic) as any;
+  if (!view) return null;
 
-  const color = entry.color_hex ?? "#c8b6ff";
+  const color = view.color_hex ?? "#c8b6ff";
   const fg = readableOn(color);
+
 
   async function handleSave() {
     if (!cardRef.current) return;
@@ -316,7 +342,7 @@ function AnalysisPage() {
         style: { borderRadius: "24px" },
       });
       const link = document.createElement("a");
-      link.download = `maeumgyeol-${entry?.entry_date ?? "today"}.png`;
+      link.download = `maeumgyeol-${view?.entry_date ?? "today"}.png`;
       link.href = dataUrl;
       link.click();
     } finally {
@@ -337,7 +363,7 @@ function AnalysisPage() {
         </div>
       )}
       <header className="text-center pt-2">
-        <p className="text-xs text-muted-foreground tracking-wider">{dateParam ? entry.entry_date : "TODAY'S MIND"}</p>
+        <p className="text-xs text-muted-foreground tracking-wider">{dateParam ? view.entry_date : "TODAY'S MIND"}</p>
         <h1 className="mt-1 text-2xl font-bold">{dateParam ? "그 날의 마음의 빛" : "오늘 마음의 빛"}</h1>
       </header>
 
@@ -414,9 +440,9 @@ function AnalysisPage() {
           <div className="relative h-full flex flex-col justify-between">
             <div>
               <p className="text-[11px] opacity-70 tracking-widest">한 줄 요약</p>
-              <p className="mt-2 text-xl font-bold leading-snug">{entry.summary}</p>
+              <p className="mt-2 text-xl font-bold leading-snug">{view.summary}</p>
               <p className="mt-1 text-[11px] font-mono opacity-50 tracking-wider">
-                {(entry.color_hex ?? color).toUpperCase()}
+                {(view.color_hex ?? color).toUpperCase()}
               </p>
             </div>
 
@@ -424,13 +450,13 @@ function AnalysisPage() {
               <div>
                 <p className="text-[11px] opacity-70 tracking-widest">인지부하도</p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-3xl font-bold">{entry.cognitive_load ?? 0}%</p>
-                  <p className="text-xs opacity-80">{loadLabel(entry.cognitive_load ?? 0)}</p>
+                  <p className="text-3xl font-bold">{view.cognitive_load ?? 0}%</p>
+                  <p className="text-xs opacity-80">{loadLabel(view.cognitive_load ?? 0)}</p>
                 </div>
                 <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: fg, opacity: 0.18 }}>
                   <div
                     className="h-full rounded-full"
-                    style={{ width: `${entry.cognitive_load ?? 0}%`, backgroundColor: fg, opacity: 0.9 }}
+                    style={{ width: `${view.cognitive_load ?? 0}%`, backgroundColor: fg, opacity: 0.9 }}
                   />
                 </div>
               </div>
@@ -439,13 +465,13 @@ function AnalysisPage() {
                 <p className="text-[11px] opacity-70 tracking-widest flex items-center gap-1">
                   <Brain className="h-3 w-3" /> 무의식 정리
                 </p>
-                <p className="mt-1 text-sm leading-relaxed opacity-95">{entry.unconscious}</p>
+                <p className="mt-1 text-sm leading-relaxed opacity-95">{view.unconscious}</p>
               </div>
             </div>
 
             <p className="text-[10px] opacity-100 pt-1 inline-flex items-center gap-1">
               <SynclrWordmark className="font-bold" style={{ color: fg }} />
-              <span style={{ color: fg, opacity: 0.6 }}>· {entry.entry_date}</span>
+              <span style={{ color: fg, opacity: 0.6 }}>· {view.entry_date}</span>
             </p>
           </div>
         </div>
@@ -461,13 +487,13 @@ function AnalysisPage() {
         </button>
       </div>
 
-      {Array.isArray(entry.routines) && entry.routines.length > 0 && (
+      {Array.isArray(view.routines) && view.routines.length > 0 && (
         <section>
           <h2 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
             <Sparkles className="h-4 w-4 text-primary" /> 오늘의 추천 루틴
           </h2>
           <div className="space-y-2.5">
-            {(entry.routines as Array<{ title: string; description: string }>).map((r, i) => (
+            {(view.routines as Array<{ title: string; description: string }>).map((r, i) => (
               <div key={i} className="rounded-2xl bg-card border border-border p-4 flex items-start gap-3">
                 <div className="h-9 w-9 shrink-0 rounded-2xl bg-secondary flex items-center justify-center text-secondary-foreground font-bold text-sm">
                   {i + 1}
@@ -485,94 +511,3 @@ function AnalysisPage() {
   );
 }
 
-function EmotionResultView({ result }: { result: EmotionResult }) {
-  const mind = (result.mind_light ?? {}) as Record<string, any>;
-  const card = (result.card ?? {}) as Record<string, any>;
-  const emotion = (result.emotion ?? {}) as Record<string, any>;
-  const routines = (result.routines ?? []) as Array<{ title: string; description: string }>;
-  const color = mind.hex_color ?? "#c8b6ff";
-  const fg = readableOn(color);
-
-  return (
-    <div className="space-y-8 animate-float-up">
-      <header className="text-center pt-2">
-        <p className="text-xs text-muted-foreground tracking-wider">TODAY'S MIND</p>
-        <h1 className="mt-1 text-2xl font-bold">오늘 마음의 빛</h1>
-      </header>
-
-      {/* mind_light blob */}
-      <section
-        className="rounded-3xl p-6 shadow-sm flex items-center gap-4"
-        style={{ backgroundColor: color, color: fg }}
-      >
-        <div
-          className="h-16 w-16 rounded-full shrink-0 shadow-inner"
-          style={{ backgroundColor: color, boxShadow: `0 0 32px ${color}` }}
-          aria-label="mind light blob"
-        />
-        <div>
-          <p className="text-[11px] opacity-70 tracking-widest">MIND LIGHT</p>
-          <p className="mt-1 text-[11px] font-mono opacity-80">{String(color).toUpperCase()}</p>
-        </div>
-      </section>
-
-      {/* card */}
-      {(card.title || card.one_line_summary || card.summary) && (
-        <section className="rounded-3xl bg-card border border-border p-5 shadow-sm space-y-3">
-          <p className="text-xs font-semibold text-muted-foreground tracking-widest">CARD</p>
-          {card.title && <p className="text-xl font-bold leading-snug">{card.title}</p>}
-          {card.one_line_summary && <p className="text-sm text-muted-foreground">{card.one_line_summary}</p>}
-          {card.summary && <p className="text-sm leading-relaxed">{card.summary}</p>}
-        </section>
-      )}
-
-      {/* emotion */}
-      {(emotion.primary_emotion || emotion.emotion_flow || emotion.cognitive_load !== undefined) && (
-        <section className="rounded-3xl bg-card border border-border p-5 shadow-sm space-y-3">
-          <p className="text-xs font-semibold text-muted-foreground tracking-widest">EMOTION</p>
-          {emotion.primary_emotion && (
-            <div>
-              <p className="text-[11px] text-muted-foreground">대표 감정</p>
-              <p className="text-xl font-bold">{emotion.primary_emotion}</p>
-            </div>
-          )}
-          {emotion.emotion_flow && (
-            <div>
-              <p className="text-[11px] text-muted-foreground">감정 흐름</p>
-              <p className="text-sm leading-relaxed">{emotion.emotion_flow}</p>
-            </div>
-          )}
-          {emotion.cognitive_load !== undefined && (
-            <div>
-              <p className="text-[11px] text-muted-foreground">인지 부하</p>
-              <p className="text-2xl font-bold">
-                {emotion.cognitive_load}
-                {typeof emotion.cognitive_load === "number" ? "%" : ""}
-              </p>
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* routines */}
-      {routines.length > 0 && (
-        <section>
-          <h2 className="text-sm font-semibold mb-3">오늘의 추천 루틴</h2>
-          <div className="space-y-2.5">
-            {routines.slice(0, 3).map((r, i) => (
-              <div key={i} className="rounded-2xl bg-card border border-border p-4 flex items-start gap-3">
-                <div className="h-9 w-9 shrink-0 rounded-2xl bg-secondary flex items-center justify-center text-secondary-foreground font-bold text-sm">
-                  {i + 1}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">{r.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{r.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
-  );
-}
