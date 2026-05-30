@@ -252,7 +252,7 @@ function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initia
       {loading && (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
           <Loader2 className="h-6 w-6 animate-spin" />
-          <p className="text-sm">리포트를 생성하는 중이에요...</p>
+          <p className="text-sm">{loadingMsg}</p>
         </div>
       )}
 
