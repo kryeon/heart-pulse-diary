@@ -361,3 +361,82 @@ function AnalysisPage() {
     </div>
   );
 }
+
+function EmotionResultView({ result }: { result: EmotionResult }) {
+  const mind = (result.mind_light ?? {}) as Record<string, any>;
+  const card = (result.card ?? {}) as Record<string, any>;
+  const emotion = (result.emotion ?? {}) as Record<string, any>;
+  const routines = (result.routines ?? []) as Array<{ title: string; description: string }>;
+  const color = mind.color_hex ?? "#c8b6ff";
+  const fg = readableOn(color);
+
+  return (
+    <div className="space-y-8 animate-float-up">
+      <header className="text-center pt-2">
+        <p className="text-xs text-muted-foreground tracking-wider">TODAY'S MIND</p>
+        <h1 className="mt-1 text-2xl font-bold">오늘 마음의 빛</h1>
+      </header>
+
+      {/* mind_light */}
+      <section className="rounded-3xl p-6 shadow-sm" style={{ backgroundColor: color, color: fg }}>
+        <p className="text-[11px] opacity-70 tracking-widest">MIND LIGHT</p>
+        <p className="mt-1 text-2xl font-bold">{mind.label ?? "오늘의 빛"}</p>
+        <p className="mt-1 text-[11px] font-mono opacity-70">{String(color).toUpperCase()}</p>
+      </section>
+
+      {/* card */}
+      {(card.summary || card.unconscious || card.cognitive_load !== undefined) && (
+        <section className="rounded-3xl bg-card border border-border p-5 shadow-sm space-y-3">
+          <p className="text-xs font-semibold text-muted-foreground tracking-widest">CARD</p>
+          {card.summary && <p className="text-lg font-bold leading-snug">{card.summary}</p>}
+          {card.cognitive_load !== undefined && (
+            <div>
+              <p className="text-[11px] text-muted-foreground">인지부하도</p>
+              <p className="text-2xl font-bold">{card.cognitive_load}%</p>
+            </div>
+          )}
+          {card.unconscious && (
+            <p className="text-sm leading-relaxed text-muted-foreground">{card.unconscious}</p>
+          )}
+        </section>
+      )}
+
+      {/* emotion */}
+      {(emotion.primary || (Array.isArray(emotion.secondary) && emotion.secondary.length > 0)) && (
+        <section className="rounded-3xl bg-card border border-border p-5 shadow-sm">
+          <p className="text-xs font-semibold text-muted-foreground tracking-widest">EMOTION</p>
+          {emotion.primary && (
+            <p className="mt-2 text-xl font-bold">{emotion.primary}</p>
+          )}
+          {Array.isArray(emotion.secondary) && emotion.secondary.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {emotion.secondary.map((s: string, i: number) => (
+                <span key={i} className="rounded-full bg-secondary text-secondary-foreground px-3 py-1 text-xs">{s}</span>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* routines */}
+      {routines.length > 0 && (
+        <section>
+          <h2 className="text-sm font-semibold mb-3">오늘의 추천 루틴</h2>
+          <div className="space-y-2.5">
+            {routines.map((r, i) => (
+              <div key={i} className="rounded-2xl bg-card border border-border p-4 flex items-start gap-3">
+                <div className="h-9 w-9 shrink-0 rounded-2xl bg-secondary flex items-center justify-center text-secondary-foreground font-bold text-sm">
+                  {i + 1}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">{r.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{r.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
