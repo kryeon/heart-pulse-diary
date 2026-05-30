@@ -53,12 +53,23 @@ function InputPage() {
   // While checking (or about to redirect), show a full-screen breathing signature loader
   if (isLoading || isFetching || today) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center gap-6">
-        <div className="h-24 w-24 rounded-full animate-signature-glow" />
+      <div className="min-h-[80vh] flex flex-col items-center justify-center gap-5">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full animate-signature-glow" />
+          <img
+            src={new URL("@/assets/synclr-logo.png", import.meta.url).href}
+            alt="Synclr"
+            className="relative h-24 w-24 rounded-2xl object-cover shadow-lg animate-breathe"
+          />
+        </div>
+        <p className="text-lg font-bold tracking-tight bg-gradient-to-r from-[#c4a8ff] via-[#ff9eb5] to-[#ffd28a] bg-clip-text text-transparent">
+          Synclr
+        </p>
         <p className="text-sm text-muted-foreground animate-pulse">마음을 살피는 중…</p>
       </div>
     );
   }
+
 
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
