@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getTodayEntry } from "@/lib/analyze.functions";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
 import { Brain, Download, Sparkles } from "lucide-react";
 import { toPng } from "html-to-image";
 import * as SliderPrimitive from "@radix-ui/react-slider";
@@ -10,6 +11,8 @@ import { motion, useMotionValue, useSpring, useTransform, type MotionValue } fro
 
 export const Route = createFileRoute("/_app/analysis")({
   head: () => ({ meta: [{ title: "오늘의 분석 · 마음결" }] }),
+  validateSearch: (s: Record<string, unknown>) =>
+    z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).parse(s),
   component: AnalysisPage,
 });
 
@@ -29,86 +32,47 @@ function loadLabel(n: number) {
   return "많이 지쳤어요";
 }
 
-/** Smooth Radix slider with spring-eased thumb feedback. */
 function SmoothSlider({
-  value,
-  onChange,
-  orientation = "horizontal",
-  length,
-  label,
+  value, onChange, orientation = "horizontal", length, label,
 }: {
-  value: number;
-  onChange: (n: number) => void;
-  orientation?: "horizontal" | "vertical";
-  length: number;
-  label: string;
+  value: number; onChange: (n: number) => void;
+  orientation?: "horizontal" | "vertical"; length: number; label: string;
 }) {
   const [active, setActive] = useState(false);
   const scale = useSpring(1, { stiffness: 400, damping: 22 });
-
-  useEffect(() => {
-    scale.set(active ? 1.4 : 1);
-  }, [active, scale]);
-
+  useEffect(() => { scale.set(active ? 1.4 : 1); }, [active, scale]);
   const isV = orientation === "vertical";
-
   return (
     <SliderPrimitive.Root
-      value={[value]}
-      onValueChange={(v) => onChange(v[0])}
-      min={20}
-      max={100}
-      step={1}
-      orientation={orientation}
+      value={[value]} onValueChange={(v) => onChange(v[0])}
+      min={20} max={100} step={1} orientation={orientation}
       onPointerDown={() => setActive(true)}
       onPointerUp={() => setActive(false)}
       onLostPointerCapture={() => setActive(false)}
       aria-label={label}
-      className={`relative flex touch-none select-none items-center justify-center ${
-        isV ? "flex-col h-full w-5" : "h-5 w-full"
-      }`}
+      className={`relative flex touch-none select-none items-center justify-center ${isV ? "flex-col h-full w-5" : "h-5 w-full"}`}
       style={isV ? { height: length } : { width: length }}
     >
-      <SliderPrimitive.Track
-        className={`relative grow overflow-hidden rounded-full bg-primary/15 ${
-          isV ? "w-1.5 h-full" : "h-1.5 w-full"
-        }`}
-      >
-        <SliderPrimitive.Range
-          className="absolute rounded-full"
-          style={{
-            background: "linear-gradient(135deg, var(--lavender), var(--peach))",
-            ...(isV ? { width: "100%" } : { height: "100%" }),
-          }}
-        />
+      <SliderPrimitive.Track className={`relative grow overflow-hidden rounded-full bg-primary/15 ${isV ? "w-1.5 h-full" : "h-1.5 w-full"}`}>
+        <SliderPrimitive.Range className="absolute rounded-full" style={{
+          background: "linear-gradient(135deg, var(--lavender), var(--peach))",
+          ...(isV ? { width: "100%" } : { height: "100%" }),
+        }} />
       </SliderPrimitive.Track>
       <SliderPrimitive.Thumb asChild>
-        <motion.div
-          style={{ scale }}
-          className="block h-5 w-5 rounded-full bg-white border-2 border-primary/60 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-grab active:cursor-grabbing active:shadow-lg"
-        />
+        <motion.div style={{ scale }} className="block h-5 w-5 rounded-full bg-white border-2 border-primary/60 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-grab active:cursor-grabbing active:shadow-lg" />
       </SliderPrimitive.Thumb>
     </SliderPrimitive.Root>
   );
 }
 
-/** A wispy, organically morphing cloud — irregular border-radius keyframes + drift. */
-function CloudBlob({
-  color,
-  spread,
-  intensity,
-}: {
-  color: string;
-  spread: MotionValue<number>;
-  intensity: MotionValue<number>;
-}) {
-  const size = useTransform(spread, (s) => 120 + s * 1.7);
-  const blur = useTransform(spread, (s) => Math.max(2, (s - 20) * 0.5));
+function CloudBlob({ color, spread, intensity }: { color: string; spread: MotionValue<number>; intensity: MotionValue<number>; }) {
+  const size = useTransform(spread, (s) => 90 + s * 1.2);
+  const blur = useTransform(spread, (s) => Math.max(2, (s - 20) * 0.4));
   const opacity = useTransform(intensity, (i) => 0.35 + (i / 100) * 0.6);
-  const haloBlur = useTransform(spread, (s) => Math.max(20, (s - 10) * 0.8 + 20));
+  const haloBlur = useTransform(spread, (s) => Math.max(16, (s - 10) * 0.6 + 16));
   const haloOpacity = useTransform(intensity, (i) => 0.15 + (i / 100) * 0.3);
 
-  // Organic border-radius morph keyframes (used by multiple puffs)
   const morphRadii = [
     "30% 70% 70% 30% / 30% 30% 70% 70%",
     "60% 40% 30% 70% / 60% 30% 70% 40%",
@@ -116,76 +80,41 @@ function CloudBlob({
     "70% 30% 50% 50% / 40% 60% 40% 60%",
     "30% 70% 70% 30% / 30% 30% 70% 70%",
   ];
-
-  // Irregular cloud puffs — offsets relative to center.
   const puffs = [
     { x: 0, y: 0, scale: 1.0, dur: 11 },
-    { x: -55, y: -10, scale: 0.72, dur: 13 },
-    { x: 50, y: -20, scale: 0.68, dur: 14 },
-    { x: -30, y: 30, scale: 0.58, dur: 12 },
-    { x: 40, y: 35, scale: 0.62, dur: 15 },
-    { x: 0, y: -45, scale: 0.5, dur: 10 },
+    { x: -40, y: -8, scale: 0.7, dur: 13 },
+    { x: 38, y: -14, scale: 0.66, dur: 14 },
+    { x: -22, y: 22, scale: 0.56, dur: 12 },
+    { x: 30, y: 26, scale: 0.6, dur: 15 },
+    { x: 0, y: -32, scale: 0.48, dur: 10 },
   ];
 
   return (
     <div className="relative w-full h-full grid place-items-center pointer-events-none">
-      {/* outer halo */}
-      <motion.div
-        className="absolute"
-        style={{
-          width: size,
-          height: size,
-          backgroundColor: color,
-          filter: useTransform(haloBlur, (b) => `blur(${b}px)`),
-          opacity: haloOpacity,
-          scale: 1.3,
-          borderRadius: "50%",
-        }}
-        animate={{ x: [0, -6, 5, 0], y: [0, 4, -5, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-      />
+      <motion.div className="absolute" style={{
+        width: size, height: size, backgroundColor: color,
+        filter: useTransform(haloBlur, (b) => `blur(${b}px)`),
+        opacity: haloOpacity, scale: 1.3, borderRadius: "50%",
+      }} animate={{ x: [0, -6, 5, 0], y: [0, 4, -5, 0] }} transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }} />
       {puffs.map((p, i) => (
-        <motion.div
-          key={i}
-          className="absolute"
-          style={{
-            width: useTransform(size, (s) => s * p.scale),
-            height: useTransform(size, (s) => s * p.scale),
-            backgroundColor: color,
-            opacity,
-            filter: useTransform(blur, (b) => `blur(${b}px)`),
-          }}
-          animate={{
-            x: [p.x, p.x + 8, p.x - 6, p.x + 4, p.x],
-            y: [p.y, p.y - 7, p.y + 5, p.y - 3, p.y],
-            borderRadius: morphRadii,
-            rotate: [0, 6, -4, 3, 0],
-          }}
-          transition={{
-            duration: p.dur,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.3,
-          }}
-        />
+        <motion.div key={i} className="absolute" style={{
+          width: useTransform(size, (s) => s * p.scale),
+          height: useTransform(size, (s) => s * p.scale),
+          backgroundColor: color, opacity,
+          filter: useTransform(blur, (b) => `blur(${b}px)`),
+        }} animate={{
+          x: [p.x, p.x + 8, p.x - 6, p.x + 4, p.x],
+          y: [p.y, p.y - 7, p.y + 5, p.y - 3, p.y],
+          borderRadius: morphRadii, rotate: [0, 6, -4, 3, 0],
+        }} transition={{ duration: p.dur, repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }} />
       ))}
-      {/* soft highlight */}
-      <motion.div
-        className="absolute"
-        style={{
-          width: useTransform(size, (s) => s * 0.45),
-          height: useTransform(size, (s) => s * 0.45),
-          backgroundColor: "#ffffff",
-          opacity: 0.22,
-          filter: useTransform(blur, (b) => `blur(${b * 0.6 + 8}px)`),
-        }}
-        animate={{
-          x: [-15, -10, -18, -15],
-          y: [-20, -25, -18, -20],
-          borderRadius: morphRadii,
-        }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-      />
+      <motion.div className="absolute" style={{
+        width: useTransform(size, (s) => s * 0.45),
+        height: useTransform(size, (s) => s * 0.45),
+        backgroundColor: "#ffffff", opacity: 0.22,
+        filter: useTransform(blur, (b) => `blur(${b * 0.6 + 8}px)`),
+      }} animate={{ x: [-15, -10, -18, -15], y: [-20, -25, -18, -20], borderRadius: morphRadii }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }} />
     </div>
   );
 }
@@ -196,21 +125,19 @@ function localDateStr() {
 }
 
 function AnalysisPage() {
-  const fetchToday = useServerFn(getTodayEntry);
-  const localDate = localDateStr();
+  const { date: dateParam } = Route.useSearch();
+  const fetchEntry = useServerFn(getTodayEntry);
+  const targetDate = dateParam ?? localDateStr();
   const { data: entry, isLoading } = useQuery({
-    queryKey: ["today", localDate],
-    queryFn: () => fetchToday({ data: { local_date: localDate } }),
+    queryKey: ["entry", targetDate],
+    queryFn: () => fetchEntry({ data: { local_date: targetDate } }),
   });
   const navigate = useNavigate();
 
-
   const [spread, setSpread] = useState(60);
   const [intensity, setIntensity] = useState(70);
-
   const spreadMV = useSpring(spread, { stiffness: 120, damping: 20 });
   const intensityMV = useSpring(intensity, { stiffness: 120, damping: 20 });
-
   useEffect(() => { spreadMV.set(spread); }, [spread, spreadMV]);
   useEffect(() => { intensityMV.set(intensity); }, [intensity, intensityMV]);
 
@@ -235,7 +162,8 @@ function AnalysisPage() {
       const dataUrl = await toPng(cardRef.current, {
         pixelRatio: 2,
         cacheBust: true,
-        backgroundColor: color,
+        backgroundColor: undefined,
+        style: { borderRadius: "24px" },
       });
       const link = document.createElement("a");
       link.download = `maeumgyeol-${entry?.entry_date ?? "today"}.png`;
@@ -246,78 +174,52 @@ function AnalysisPage() {
     }
   }
 
-  // Square frame layout: cloud centered inside square, right edge has vertical
-  // slider, bottom edge has horizontal slider — "ㄴ" reversed / mirrored shape.
-  const SQUARE = 300;
-  const GUTTER = 28; // distance from square edge to slider rail
+  const SQUARE = 280;
+  const GUTTER = 26;
+  const STAGE_W = SQUARE + GUTTER + 24;
+  const STAGE_H = SQUARE + GUTTER + 32;
 
   return (
     <div className="space-y-8 animate-float-up">
       <header className="text-center pt-2">
-        <p className="text-xs text-muted-foreground tracking-wider">TODAY'S MIND</p>
-        <h1 className="mt-1 text-2xl font-bold">오늘 마음의 빛</h1>
+        <p className="text-xs text-muted-foreground tracking-wider">
+          {dateParam ? entry.entry_date : "TODAY'S MIND"}
+        </p>
+        <h1 className="mt-1 text-2xl font-bold">{dateParam ? "그 날의 마음의 빛" : "오늘 마음의 빛"}</h1>
       </header>
 
-      {/* Outer stage gives room for sliders on the right and bottom edges */}
-      <div
-        className="relative mx-auto"
-        style={{ width: SQUARE + GUTTER + 24, height: SQUARE + GUTTER + 32 }}
-      >
-        {/* Square frame */}
-        <div
-          className="absolute top-0 left-0 rounded-3xl border border-primary/15 bg-gradient-to-br from-background to-secondary/20"
-          style={{ width: SQUARE, height: SQUARE }}
-        >
-          {/* Cloud centered inside square */}
-          <div className="absolute inset-0">
-            <CloudBlob color={color} spread={spreadMV} intensity={intensityMV} />
+      {/* Cloud + sliders grouped: centered horizontally as one unit */}
+      <div className="flex justify-center">
+        <div className="relative" style={{ width: STAGE_W, height: STAGE_H }}>
+          {/* Aurora/cloud square — rounded + overflow hidden so puffs never spill */}
+          <div
+            className="absolute top-0 left-0 rounded-3xl border border-primary/15 bg-gradient-to-br from-background to-secondary/20 overflow-hidden"
+            style={{ width: SQUARE, height: SQUARE }}
+          >
+            <div className="absolute inset-0">
+              <CloudBlob color={color} spread={spreadMV} intensity={intensityMV} />
+            </div>
           </div>
-        </div>
 
-        {/* Right-edge vertical slider — intensity (강도) */}
-        <div
-          className="absolute flex flex-col items-center gap-2"
-          style={{ left: SQUARE + GUTTER - 10, top: 0, height: SQUARE }}
-        >
-          <SmoothSlider
-            orientation="vertical"
-            value={intensity}
-            onChange={setIntensity}
-            length={SQUARE}
-            label="강도"
-          />
-        </div>
+          {/* Right vertical slider */}
+          <div className="absolute flex flex-col items-center gap-2"
+            style={{ left: SQUARE + GUTTER - 10, top: 0, height: SQUARE }}>
+            <SmoothSlider orientation="vertical" value={intensity} onChange={setIntensity} length={SQUARE} label="강도" />
+          </div>
 
-        {/* Bottom-edge horizontal slider — spread (퍼짐) */}
-        <div
-          className="absolute flex items-center gap-2"
-          style={{ top: SQUARE + GUTTER - 10, left: 0, width: SQUARE }}
-        >
-          <SmoothSlider
-            orientation="horizontal"
-            value={spread}
-            onChange={setSpread}
-            length={SQUARE}
-            label="퍼짐"
-          />
-        </div>
+          {/* Bottom horizontal slider */}
+          <div className="absolute flex items-center gap-2"
+            style={{ top: SQUARE + GUTTER - 10, left: 0, width: SQUARE }}>
+            <SmoothSlider orientation="horizontal" value={spread} onChange={setSpread} length={SQUARE} label="퍼짐" />
+          </div>
 
-        {/* Axis labels */}
-        <span
-          className="absolute text-[10px] text-muted-foreground tracking-wider"
-          style={{ left: SQUARE + GUTTER + 12, top: -2 }}
-        >
-          강도
-        </span>
-        <span
-          className="absolute text-[10px] text-muted-foreground tracking-wider"
-          style={{ left: -2, top: SQUARE + GUTTER + 12 }}
-        >
-          퍼짐 · {color}
-        </span>
+          <span className="absolute text-[10px] text-muted-foreground tracking-wider"
+            style={{ left: SQUARE + GUTTER + 12, top: -2 }}>강도</span>
+          <span className="absolute text-[10px] text-muted-foreground tracking-wider"
+            style={{ left: -2, top: SQUARE + GUTTER + 12 }}>퍼짐 · {color}</span>
+        </div>
       </div>
 
-      {/* Square emotion card */}
       <div className="space-y-3">
         <div
           ref={cardRef}
@@ -328,19 +230,18 @@ function AnalysisPage() {
             color: fg,
           }}
         >
-          <div
-            className="absolute -top-10 -right-10 w-40 h-40 rounded-full"
-            style={{ backgroundColor: fg, opacity: 0.08, filter: "blur(20px)" }}
-          />
-          <div
-            className="absolute -bottom-12 -left-8 w-44 h-44 rounded-full"
-            style={{ backgroundColor: fg, opacity: 0.06, filter: "blur(24px)" }}
-          />
+          <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full"
+            style={{ backgroundColor: fg, opacity: 0.08, filter: "blur(20px)" }} />
+          <div className="absolute -bottom-12 -left-8 w-44 h-44 rounded-full"
+            style={{ backgroundColor: fg, opacity: 0.06, filter: "blur(24px)" }} />
 
           <div className="relative h-full flex flex-col justify-between">
             <div>
               <p className="text-[11px] opacity-70 tracking-widest">한 줄 요약</p>
               <p className="mt-2 text-xl font-bold leading-snug">{entry.summary}</p>
+              <p className="mt-1 text-[11px] font-mono opacity-50 tracking-wider">
+                {(entry.color_hex ?? color).toUpperCase()}
+              </p>
             </div>
 
             <div className="space-y-3">
@@ -351,10 +252,8 @@ function AnalysisPage() {
                   <p className="text-xs opacity-80">{loadLabel(entry.cognitive_load ?? 0)}</p>
                 </div>
                 <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: fg, opacity: 0.18 }}>
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${entry.cognitive_load ?? 0}%`, backgroundColor: fg, opacity: 0.9 }}
-                  />
+                  <div className="h-full rounded-full"
+                    style={{ width: `${entry.cognitive_load ?? 0}%`, backgroundColor: fg, opacity: 0.9 }} />
                 </div>
               </div>
 
@@ -370,12 +269,8 @@ function AnalysisPage() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full rounded-2xl bg-card border border-border py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-secondary/50 transition disabled:opacity-60"
-        >
+        <button type="button" onClick={handleSave} disabled={saving}
+          className="w-full rounded-2xl bg-card border border-border py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-secondary/50 transition disabled:opacity-60">
           <Download className="h-4 w-4" />
           {saving ? "저장 중…" : "이미지로 저장"}
         </button>
