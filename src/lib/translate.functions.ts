@@ -19,8 +19,13 @@ export const translateReport = createServerFn({ method: "POST" })
       "dominant_emotion",
       "top_domain",
     ];
+    const insightFields = [
+      "dominant_pattern",
+      "highest_load_insight",
+      "trigger_insight",
+      "recovery_insight",
+    ];
 
-    // Collect fields to translate
     const toTranslate: Record<string, string> = {};
     for (const k of stringFields) {
       if (typeof data.report?.[k] === "string" && data.report[k].trim()) {
@@ -55,7 +60,7 @@ export const translateReport = createServerFn({ method: "POST" })
             {
               role: "system",
               content:
-                "You translate values of a JSON object from any language into natural, warm Korean. Keep the SAME JSON keys. Keep numbers, hex colors, dates, URLs unchanged. Translate only string values. If a value is already Korean, return it as-is. Return ONLY a valid JSON object, no markdown, no commentary.",
+                "You return a JSON object with two parts: 1) 'translated' — every input key with its value translated to natural warm Korean (keep numbers/hex/dates/URLs as-is; if already Korean, keep as-is). 2) 'keywords' — for each insight key (dominant_pattern, highest_load_insight, trigger_insight, recovery_insight) that exists in input, an array of 1–3 SHORT Korean noun keywords (each 2–8 글자, no particles like 을/를/이/가, no full sentences). Also for each __rec_<i> key, a SHORT Korean action keyword (2–8 글자, 동사/명사구, e.g. '시간 관리', '짧은 휴식'). Output shape exactly: {\"translated\":{...},\"keywords\":{\"dominant_pattern\":[...],\"trigger_insight\":[...],\"__rec_0\":\"...\",...}}. Return ONLY valid JSON, no markdown.",
             },
             {
               role: "user",
@@ -69,7 +74,9 @@ export const translateReport = createServerFn({ method: "POST" })
       const json = await res.json();
       const content: string = json?.choices?.[0]?.message?.content ?? "";
       const cleaned = content.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-      const translated = JSON.parse(cleaned);
+      const parsed = JSON.parse(cleaned);
+      const translated = parsed.translated ?? parsed;
+      const keywords = parsed.keywords ?? {};
 
       const out: any = { ...data.report };
       for (const k of stringFields) {
@@ -77,7 +84,20 @@ export const translateReport = createServerFn({ method: "POST" })
       }
       if (recs.length) {
         out.recommendations = recs.map((_, i) => translated[`__rec_${i}`] ?? recs[i]);
+        out.recommendation_keywords = recs.map((_, i) => {
+          const k = keywords[`__rec_${i}`];
+          return typeof k === "string" ? k : "";
+        });
       }
+      const insightKw: Record<string, string[]> = {};
+      for (const k of insightFields) {
+        const arr = keywords[k];
+        if (Array.isArray(arr)) {
+          insightKw[k] = arr.filter((x: any) => typeof x === "string" && x.trim()).slice(0, 3);
+        }
+      }
+      out.insight_keywords = insightKw;
+
       if (timeline.length) {
         out.timeline = timeline.map((t, i) => ({
           ...t,

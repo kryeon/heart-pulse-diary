@@ -177,15 +177,48 @@ function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-function InsightBlock({ label, text }: { label: string; text?: string }) {
-  if (!text) return null;
+const INSIGHT_TONES: Record<string, { label: string; chip: string }> = {
+  pattern: { label: "text-indigo-500", chip: "bg-indigo-50 text-indigo-600" },
+  load: { label: "text-rose-500", chip: "bg-rose-50 text-rose-600" },
+  trigger: { label: "text-orange-500", chip: "bg-orange-50 text-orange-600" },
+  recovery: { label: "text-teal-500", chip: "bg-teal-50 text-teal-600" },
+};
+
+function InsightBlock({
+  label,
+  text,
+  keywords,
+  tone = "pattern",
+}: {
+  label: string;
+  text?: string;
+  keywords?: string[];
+  tone?: keyof typeof INSIGHT_TONES;
+}) {
+  if (!text && (!keywords || keywords.length === 0)) return null;
+  const t = INSIGHT_TONES[tone];
   return (
-    <div className="rounded-2xl bg-card border border-border p-4">
-      <p className="text-[11px] text-muted-foreground tracking-wider mb-1.5">{label}</p>
-      <p className="text-sm leading-relaxed">{text}</p>
+    <div className="rounded-3xl bg-card border border-border/60 p-4 space-y-2 shadow-sm">
+      <p className={`text-[11px] font-bold tracking-wider uppercase ${t.label}`}>{label}</p>
+      {keywords && keywords.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {keywords.map((k, i) => (
+            <span key={i} className={`px-3 py-1 rounded-full text-sm font-bold ${t.chip}`}>
+              {k}
+            </span>
+          ))}
+        </div>
+      )}
+      {text && <p className="text-xs text-muted-foreground leading-snug">{text}</p>}
     </div>
   );
 }
+
+const REC_TONES = [
+  { bg: "bg-[#f4f2ff]", fg: "text-[#7c66ff]", arrow: "text-indigo-300" },
+  { bg: "bg-[#f1f8f6]", fg: "text-[#4ea18c]", arrow: "text-teal-300" },
+  { bg: "bg-[#fff5f2]", fg: "text-[#ff8e6e]", arrow: "text-orange-300" },
+];
 
 function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initialMonth: number }) {
   const { user } = useAuth();
@@ -331,21 +364,35 @@ function StatsPage({ onBack }: { onBack: () => void; initialYear: number; initia
 
               <section className="space-y-2">
                 <p className="text-[11px] text-muted-foreground tracking-wider px-1">인사이트</p>
-                <InsightBlock label="주요 패턴" text={reportData.dominant_pattern} />
-                <InsightBlock label="가장 높은 부하" text={reportData.highest_load_insight} />
-                <InsightBlock label="트리거" text={reportData.trigger_insight} />
-                <InsightBlock label="회복" text={reportData.recovery_insight} />
+                <InsightBlock label="주요 패턴" text={reportData.dominant_pattern} keywords={reportData.insight_keywords?.dominant_pattern} tone="pattern" />
+                <InsightBlock label="가장 높은 부하" text={reportData.highest_load_insight} keywords={reportData.insight_keywords?.highest_load_insight} tone="load" />
+                <InsightBlock label="트리거" text={reportData.trigger_insight} keywords={reportData.insight_keywords?.trigger_insight} tone="trigger" />
+                <InsightBlock label="회복" text={reportData.recovery_insight} keywords={reportData.insight_keywords?.recovery_insight} tone="recovery" />
               </section>
 
               {Array.isArray(reportData.recommendations) && reportData.recommendations.length > 0 && (
                 <section className="space-y-2">
                   <p className="text-[11px] text-muted-foreground tracking-wider px-1">추천 행동</p>
                   <div className="grid gap-2">
-                    {reportData.recommendations.slice(0, 3).map((r: string, i: number) => (
-                      <div key={i} className="rounded-2xl bg-gradient-to-br from-secondary/40 to-card border border-border p-3 text-sm leading-relaxed">
-                        {r}
-                      </div>
-                    ))}
+                    {reportData.recommendations.slice(0, 3).map((r: string, i: number) => {
+                      const tone = REC_TONES[i % REC_TONES.length];
+                      const kw = reportData.recommendation_keywords?.[i] as string | undefined;
+                      return (
+                        <div key={i} className={`${tone.bg} p-4 rounded-2xl flex items-center justify-between gap-3`}>
+                          <div className="min-w-0 flex-1">
+                            {kw ? (
+                              <>
+                                <p className={`text-lg font-extrabold leading-tight ${tone.fg}`}>{kw}</p>
+                                <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{r}</p>
+                              </>
+                            ) : (
+                              <p className={`text-sm font-semibold leading-snug ${tone.fg}`}>{r}</p>
+                            )}
+                          </div>
+                          <span className={`shrink-0 ${tone.arrow}`}>→</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </section>
               )}
