@@ -209,6 +209,11 @@ function AnalysisPage() {
     return <div className="text-center text-muted-foreground text-sm pt-20">불러오는 중…</div>;
   }
 
+  if (!entry && emotionResult) {
+    return <EmotionResultView result={emotionResult} />;
+  }
+  if (!entry) return null;
+
   const color = entry.color_hex ?? "#c8b6ff";
   const fg = readableOn(color);
 
