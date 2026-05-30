@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
+import { getOrCreateUserId } from "@/lib/userId";
 
 export const Route = createFileRoute("/_app/chat")({
   component: ChatPage,
