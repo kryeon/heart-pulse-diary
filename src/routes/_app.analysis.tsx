@@ -338,7 +338,7 @@ function AnalysisPage() {
         </div>
       )}
       <header className="text-center pt-2">
-        <p className="text-xs text-muted-foreground tracking-wider">{dateParam ? entry.entry_date : "TODAY'S MIND"}</p>
+        <p className="text-xs text-muted-foreground tracking-wider">{dateParam ? view.entry_date : "TODAY'S MIND"}</p>
         <h1 className="mt-1 text-2xl font-bold">{dateParam ? "그 날의 마음의 빛" : "오늘 마음의 빛"}</h1>
       </header>
 
@@ -415,9 +415,9 @@ function AnalysisPage() {
           <div className="relative h-full flex flex-col justify-between">
             <div>
               <p className="text-[11px] opacity-70 tracking-widest">한 줄 요약</p>
-              <p className="mt-2 text-xl font-bold leading-snug">{entry.summary}</p>
+              <p className="mt-2 text-xl font-bold leading-snug">{view.summary}</p>
               <p className="mt-1 text-[11px] font-mono opacity-50 tracking-wider">
-                {(entry.color_hex ?? color).toUpperCase()}
+                {(view.color_hex ?? color).toUpperCase()}
               </p>
             </div>
 
@@ -425,13 +425,13 @@ function AnalysisPage() {
               <div>
                 <p className="text-[11px] opacity-70 tracking-widest">인지부하도</p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-3xl font-bold">{entry.cognitive_load ?? 0}%</p>
-                  <p className="text-xs opacity-80">{loadLabel(entry.cognitive_load ?? 0)}</p>
+                  <p className="text-3xl font-bold">{view.cognitive_load ?? 0}%</p>
+                  <p className="text-xs opacity-80">{loadLabel(view.cognitive_load ?? 0)}</p>
                 </div>
                 <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: fg, opacity: 0.18 }}>
                   <div
                     className="h-full rounded-full"
-                    style={{ width: `${entry.cognitive_load ?? 0}%`, backgroundColor: fg, opacity: 0.9 }}
+                    style={{ width: `${view.cognitive_load ?? 0}%`, backgroundColor: fg, opacity: 0.9 }}
                   />
                 </div>
               </div>
@@ -440,13 +440,13 @@ function AnalysisPage() {
                 <p className="text-[11px] opacity-70 tracking-widest flex items-center gap-1">
                   <Brain className="h-3 w-3" /> 무의식 정리
                 </p>
-                <p className="mt-1 text-sm leading-relaxed opacity-95">{entry.unconscious}</p>
+                <p className="mt-1 text-sm leading-relaxed opacity-95">{view.unconscious}</p>
               </div>
             </div>
 
             <p className="text-[10px] opacity-100 pt-1 inline-flex items-center gap-1">
               <SynclrWordmark className="font-bold" style={{ color: fg }} />
-              <span style={{ color: fg, opacity: 0.6 }}>· {entry.entry_date}</span>
+              <span style={{ color: fg, opacity: 0.6 }}>· {view.entry_date}</span>
             </p>
           </div>
         </div>
@@ -462,13 +462,13 @@ function AnalysisPage() {
         </button>
       </div>
 
-      {Array.isArray(entry.routines) && entry.routines.length > 0 && (
+      {Array.isArray(view.routines) && view.routines.length > 0 && (
         <section>
           <h2 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
             <Sparkles className="h-4 w-4 text-primary" /> 오늘의 추천 루틴
           </h2>
           <div className="space-y-2.5">
-            {(entry.routines as Array<{ title: string; description: string }>).map((r, i) => (
+            {(view.routines as Array<{ title: string; description: string }>).map((r, i) => (
               <div key={i} className="rounded-2xl bg-card border border-border p-4 flex items-start gap-3">
                 <div className="h-9 w-9 shrink-0 rounded-2xl bg-secondary flex items-center justify-center text-secondary-foreground font-bold text-sm">
                   {i + 1}
