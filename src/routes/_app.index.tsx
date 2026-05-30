@@ -2,9 +2,11 @@ import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeEntry, getTodayEntry } from "@/lib/analyze.functions";
+import { callN8n } from "@/lib/n8n";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles, ImagePlus, Loader2 } from "lucide-react";
+import { Sparkles, ImagePlus, Moon, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/")({
   head: () => ({ meta: [{ title: "오늘 하루 · 마음결" }] }),
@@ -33,6 +35,8 @@ function InputPage() {
   const [content, setContent] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [sleepHours, setSleepHours] = useState<string>("");
+  const [energyLevel, setEnergyLevel] = useState<number | null>(null);
 
   // Navigate to analysis only after the today-check completes
   useEffect(() => {
@@ -65,6 +69,14 @@ function InputPage() {
     if (!content.trim()) { toast.error("오늘의 마음을 한 줄이라도 적어주세요"); return; }
     setBusy(true);
     try {
+      callN8n({
+        content: content.trim(),
+        image_url: imageDataUrl,
+        local_date: localDate,
+        sleep_hours: sleepHours ? Number(sleepHours) : null,
+        energy_level: energyLevel,
+      }).catch(() => {});
+
       await analyze({ data: { content: content.trim(), image_url: imageDataUrl, local_date: localDate } });
       await router.invalidate();
       navigate({ to: "/analysis" });
@@ -102,6 +114,63 @@ function InputPage() {
         {imageDataUrl && (
           <img src={imageDataUrl} alt="첨부" className="mt-3 rounded-2xl max-h-40 object-cover" />
         )}
+      </div>
+
+      <div className="rounded-3xl bg-card border border-border p-5 shadow-sm space-y-6">
+        {/* 수면 시간 */}
+        <div>
+          <div className="flex items-center gap-1.5 mb-3">
+            <Moon className="h-4 w-4 text-muted-foreground" />
+            <label className="text-sm font-medium">오늘의 수면 시간</label>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              min={0}
+              max={24}
+              step={0.1}
+              value={sleepHours}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "") { setSleepHours(""); return; }
+                const n = Number(val);
+                if (n >= 0 && n <= 24) setSleepHours(val);
+              }}
+              placeholder="0"
+              className="flex-1 h-12 rounded-2xl border border-input bg-transparent px-4 text-center text-lg font-semibold outline-none focus-visible:ring-1 focus-visible:ring-ring [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <span className="text-sm text-muted-foreground font-medium shrink-0">시간</span>
+          </div>
+        </div>
+
+        {/* 에너지 레벨 */}
+        <div>
+          <div className="flex items-center gap-1.5 mb-3">
+            <Zap className="h-4 w-4 text-muted-foreground" />
+            <label className="text-sm font-medium">오늘의 에너지 레벨</label>
+          </div>
+          <div className="flex gap-1.5">
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setEnergyLevel(n)}
+                className={cn(
+                  "flex-1 h-10 rounded-xl text-sm font-semibold transition-colors cursor-pointer",
+                  energyLevel === n
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                )}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-between mt-2 text-[11px] text-muted-foreground">
+            <span>방전됨</span>
+            <span>활기참</span>
+          </div>
+        </div>
       </div>
 
       <button
