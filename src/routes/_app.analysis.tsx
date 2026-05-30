@@ -12,6 +12,8 @@ import { getEmotionResult, type EmotionResult } from "@/lib/emotionResult";
 import { SynclrWordmark } from "@/components/AppShell";
 import { TriangleBack } from "@/components/TriangleBack";
 import { useAuth } from "@/lib/auth-context";
+import { koreanizeTexts } from "@/lib/koreanize.functions";
+import { needsKoreanization } from "@/lib/koreanize";
 
 export const Route = createFileRoute("/_app/analysis")({
   head: () => ({ meta: [{ title: "오늘의 분석 · Syncl\u0023r" }] }),
