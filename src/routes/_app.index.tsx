@@ -122,9 +122,9 @@ function InputPage() {
 
       console.log("Sending payload:", payload);
 
-      const response = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL, {
+      const response = await fetch(webhookUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
         body: JSON.stringify(payload),
       });
 
