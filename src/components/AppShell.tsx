@@ -3,7 +3,17 @@ import { Link } from "@tanstack/react-router";
 import { BottomNav } from "./BottomNav";
 import logo from "@/assets/synclr-logo.png";
 
+// Gradient sampled from the Syncl#r logo (lavender → pink → peach)
+const LOGO_GRADIENT = "linear-gradient(135deg, #aea3d6 0%, #c8a9c1 45%, #ddb9c8 75%, #f0c9a8 100%)";
+
 export function SynclrWordmark({ className = "", style }: { className?: string; style?: CSSProperties }) {
+  const gradientStyle: CSSProperties = {
+    backgroundImage: LOGO_GRADIENT,
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    color: "transparent",
+  };
   return (
     <span
       className={className}
@@ -17,15 +27,14 @@ export function SynclrWordmark({ className = "", style }: { className?: string; 
         ...style,
       }}
     >
-      <span>Syncl</span>
+      <span style={gradientStyle}>Syncl</span>
       <span
         aria-hidden="true"
         style={{
+          ...gradientStyle,
           display: "inline",
-          color: "inherit",
           opacity: 1,
           visibility: "visible",
-          WebkitTextFillColor: "currentColor",
           fontFamily: 'Arial, Helvetica, "Apple SD Gothic Neo", sans-serif',
           fontWeight: "inherit",
           lineHeight: "inherit",
@@ -35,7 +44,7 @@ export function SynclrWordmark({ className = "", style }: { className?: string; 
       >
         {"\u0023"}
       </span>
-      <span>r</span>
+      <span style={gradientStyle}>r</span>
     </span>
   );
 }
