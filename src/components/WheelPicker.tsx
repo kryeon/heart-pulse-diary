@@ -4,7 +4,7 @@ interface WheelPickerProps {
   value: number;
   min?: number;
   max?: number;
-  onChange: (n: number) => void;
+  onConfirm: (n: number) => void;
   onClose: () => void;
   label?: string;
 }
@@ -12,24 +12,24 @@ interface WheelPickerProps {
 /**
  * Drum/wheel picker — scrollable column of numbers with the centered value
  * enlarged and outer values fading + shrinking. Snap-to-center via CSS
- * scroll-snap, with a debounced settle that emits the final value.
+ * scroll-snap. Selection is held in a temp state and only committed via the
+ * 완료 button (or discarded by clicking the backdrop).
  */
 export function WheelPicker({
   value,
   min = 0,
   max = 9,
-  onChange,
+  onConfirm,
   onClose,
   label = "선택",
 }: WheelPickerProps) {
   const ITEM_H = 44;
-  const VISIBLE = 5; // odd number → center row
+  const VISIBLE = 5;
   const PAD = ((VISIBLE - 1) / 2) * ITEM_H;
   const items = Array.from({ length: max - min + 1 }, (_, i) => i + min);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const settleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [active, setActive] = useState(value);
+  const [temp, setTemp] = useState(value);
 
   // initial scroll to value (no animation)
   useEffect(() => {
@@ -43,23 +43,21 @@ export function WheelPicker({
     if (!scrollRef.current) return;
     const idx = Math.round(scrollRef.current.scrollTop / ITEM_H);
     const next = Math.max(min, Math.min(max, idx + min));
-    if (next !== active) setActive(next);
+    if (next !== temp) setTemp(next);
+  };
 
-    if (settleRef.current) clearTimeout(settleRef.current);
-    settleRef.current = setTimeout(() => {
-      if (!scrollRef.current) return;
-      const finalIdx = Math.round(scrollRef.current.scrollTop / ITEM_H);
-      const clamped = Math.max(min, Math.min(max, finalIdx + min));
-      scrollRef.current.scrollTo({ top: (clamped - min) * ITEM_H, behavior: "smooth" });
-      onChange(clamped);
-      // close after the snap settles
-      setTimeout(onClose, 220);
-    }, 160);
+  const handleConfirm = () => {
+    // snap to the exact temp before committing
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: (temp - min) * ITEM_H, behavior: "smooth" });
+    }
+    onConfirm(temp);
+    onClose();
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-md animate-fade-in"
       onClick={onClose}
     >
       <div
@@ -85,7 +83,7 @@ export function WheelPicker({
           >
             <div style={{ height: PAD }} />
             {items.map((n) => {
-              const dist = Math.abs(n - active);
+              const dist = Math.abs(n - temp);
               const scale = Math.max(0.55, 1 - dist * 0.18);
               const opacity = Math.max(0.2, 1 - dist * 0.32);
               return (
@@ -107,8 +105,8 @@ export function WheelPicker({
         </div>
         <button
           type="button"
-          onClick={onClose}
-          className="mt-3 w-full rounded-xl bg-secondary text-secondary-foreground text-sm font-medium py-2 hover:bg-secondary/80 transition"
+          onClick={handleConfirm}
+          className="mt-4 w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold py-2.5 hover:opacity-90 transition active:scale-[0.98]"
         >
           완료
         </button>
@@ -116,3 +114,4 @@ export function WheelPicker({
     </div>
   );
 }
+

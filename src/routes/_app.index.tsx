@@ -8,6 +8,8 @@ import { Sparkles, ImagePlus, Moon, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { WheelPicker } from "@/components/WheelPicker";
+import logo from "@/assets/synclr-logo.png";
+
 
 
 export const Route = createFileRoute("/_app/")({
@@ -53,12 +55,24 @@ function InputPage() {
   // While checking (or about to redirect), show a full-screen breathing signature loader
   if (isLoading || isFetching || today) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center gap-6">
-        <div className="h-24 w-24 rounded-full animate-signature-glow" />
+      <div className="min-h-[80vh] flex flex-col items-center justify-center gap-5">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full animate-signature-glow" />
+          <img
+            src={logo}
+            alt="Synclr"
+            className="relative h-24 w-24 rounded-2xl object-cover shadow-lg animate-breathe"
+          />
+
+        </div>
+        <p className="text-lg font-bold tracking-tight bg-gradient-to-r from-[#c4a8ff] via-[#ff9eb5] to-[#ffd28a] bg-clip-text text-transparent">
+          Synclr
+        </p>
         <p className="text-sm text-muted-foreground animate-pulse">마음을 살피는 중…</p>
       </div>
     );
   }
+
 
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,10 +179,11 @@ function InputPage() {
               min={0}
               max={9}
               label="소수점 선택"
-              onChange={(n) => setSleepDecimal(n)}
+              onConfirm={(n) => setSleepDecimal(n)}
               onClose={() => setPickerOpen(false)}
             />
           )}
+
         </div>
 
 

@@ -52,11 +52,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "마음결 · 오늘의 마음 분석" },
-      { name: "description", content: "지친 마음을 따뜻하게 들여다보는 감정 기록 다이어리" },
+      { title: "Synclr · 오늘의 마음 분석" },
+      { name: "description", content: "지친 마음을 따뜻하게 들여다보는 감정 기록 다이어리, Synclr" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: "/synclr-logo.png" },
+      { rel: "apple-touch-icon", href: "/synclr-logo.png" },
+    ],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
