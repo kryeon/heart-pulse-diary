@@ -166,14 +166,26 @@ function InputPage() {
         localStorage.setItem("latest_entry_id", (data as any)?.entry_id ?? "");
       } catch {}
 
-      // Persist to DB in background so calendar/history still works.
+      // Persist the n8n result to DB BEFORE navigating, so the analysis
+      // screen reads back exactly the same values it just received.
       if (session?.access_token) {
-        analyze({ data: { content: content.trim(), image_url: imageDataUrl, local_date: localDate } })
-          .then(() => router.invalidate())
-          .catch(() => {});
+        try {
+          await saveEntry({
+            data: {
+              local_date: localDate,
+              content: content.trim(),
+              image_url: uploadedImageUrl || null,
+              result: data as Record<string, any>,
+            },
+          });
+          router.invalidate();
+        } catch (e) {
+          console.error("saveN8nEntry failed:", e);
+        }
       }
 
       navigate({ to: "/analysis" });
+
     } catch (error: any) {
       console.error("Webhook fetch error:", error);
       toast.error(error?.message ?? "분석에 실패했어요");
