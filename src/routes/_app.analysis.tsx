@@ -374,6 +374,9 @@ function AnalysisPage() {
       : baseView.routines,
   };
 
+  const color = view.color_hex ?? "#c8b6ff";
+  const fg = readableOn(color);
+
 
   async function handleSave() {
     if (!cardRef.current) return;
