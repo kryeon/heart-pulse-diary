@@ -7,6 +7,7 @@ import { sendN8nWebhook } from "@/lib/n8n.functions";
 import type { N8nWebhookPayload } from "@/lib/n8n";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, ImagePlus, Moon, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
