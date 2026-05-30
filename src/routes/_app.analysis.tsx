@@ -190,11 +190,22 @@ function AnalysisPage() {
   const cardRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
 
+  const [emotionResult, setEmotionResultState] = useState<EmotionResult | null>(() => getEmotionResult());
   useEffect(() => {
-    if (!isLoading && !entry) navigate({ to: "/", replace: true });
-  }, [isLoading, entry, navigate]);
+    const sync = () => setEmotionResultState(getEmotionResult());
+    window.addEventListener("emotionResult:update", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("emotionResult:update", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
 
-  if (isLoading || !entry) {
+  useEffect(() => {
+    if (!isLoading && !entry && !emotionResult) navigate({ to: "/", replace: true });
+  }, [isLoading, entry, emotionResult, navigate]);
+
+  if (isLoading || (!entry && !emotionResult)) {
     return <div className="text-center text-muted-foreground text-sm pt-20">불러오는 중…</div>;
   }
 
