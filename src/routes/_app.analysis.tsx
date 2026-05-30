@@ -14,7 +14,14 @@ import { SynclrWordmark } from "@/components/AppShell";
 export const Route = createFileRoute("/_app/analysis")({
   head: () => ({ meta: [{ title: "오늘의 분석 · Syncl\u0023r" }] }),
   validateSearch: (s: Record<string, unknown>) =>
-    z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).parse(s),
+    z
+      .object({
+        date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+      })
+      .parse(s),
   component: AnalysisPage,
 });
 
@@ -35,19 +42,32 @@ function loadLabel(n: number) {
 }
 
 function SmoothSlider({
-  value, onChange, orientation = "horizontal", length, label,
+  value,
+  onChange,
+  orientation = "horizontal",
+  length,
+  label,
 }: {
-  value: number; onChange: (n: number) => void;
-  orientation?: "horizontal" | "vertical"; length: number; label: string;
+  value: number;
+  onChange: (n: number) => void;
+  orientation?: "horizontal" | "vertical";
+  length: number;
+  label: string;
 }) {
   const [active, setActive] = useState(false);
   const scale = useSpring(1, { stiffness: 400, damping: 22 });
-  useEffect(() => { scale.set(active ? 1.4 : 1); }, [active, scale]);
+  useEffect(() => {
+    scale.set(active ? 1.4 : 1);
+  }, [active, scale]);
   const isV = orientation === "vertical";
   return (
     <SliderPrimitive.Root
-      value={[value]} onValueChange={(v) => onChange(v[0])}
-      min={20} max={100} step={1} orientation={orientation}
+      value={[value]}
+      onValueChange={(v) => onChange(v[0])}
+      min={20}
+      max={100}
+      step={1}
+      orientation={orientation}
       onPointerDown={() => setActive(true)}
       onPointerUp={() => setActive(false)}
       onLostPointerCapture={() => setActive(false)}
@@ -55,14 +75,22 @@ function SmoothSlider({
       className={`relative flex touch-none select-none items-center justify-center ${isV ? "flex-col h-full w-5" : "h-5 w-full"}`}
       style={isV ? { height: length } : { width: length }}
     >
-      <SliderPrimitive.Track className={`relative grow overflow-hidden rounded-full bg-primary/15 ${isV ? "w-1.5 h-full" : "h-1.5 w-full"}`}>
-        <SliderPrimitive.Range className="absolute rounded-full" style={{
-          background: "linear-gradient(135deg, var(--lavender), var(--peach))",
-          ...(isV ? { width: "100%" } : { height: "100%" }),
-        }} />
+      <SliderPrimitive.Track
+        className={`relative grow overflow-hidden rounded-full bg-primary/15 ${isV ? "w-1.5 h-full" : "h-1.5 w-full"}`}
+      >
+        <SliderPrimitive.Range
+          className="absolute rounded-full"
+          style={{
+            background: "linear-gradient(135deg, var(--lavender), var(--peach))",
+            ...(isV ? { width: "100%" } : { height: "100%" }),
+          }}
+        />
       </SliderPrimitive.Track>
       <SliderPrimitive.Thumb asChild>
-        <motion.div style={{ scale }} className="block h-5 w-5 rounded-full bg-white border-2 border-primary/60 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-grab active:cursor-grabbing active:shadow-lg" />
+        <motion.div
+          style={{ scale }}
+          className="block h-5 w-5 rounded-full bg-white border-2 border-primary/60 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-grab active:cursor-grabbing active:shadow-lg"
+        />
       </SliderPrimitive.Thumb>
     </SliderPrimitive.Root>
   );
@@ -73,34 +101,51 @@ function hexToHsl(hex: string) {
   const r = parseInt(h.slice(0, 2), 16) / 255;
   const g = parseInt(h.slice(2, 4), 16) / 255;
   const b = parseInt(h.slice(4, 6), 16) / 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let hh = 0, s = 0; const l = (max + min) / 2;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let hh = 0,
+    s = 0;
+  const l = (max + min) / 2;
   if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
-      case r: hh = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: hh = (b - r) / d + 2; break;
-      case b: hh = (r - g) / d + 4; break;
+      case r:
+        hh = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        hh = (b - r) / d + 2;
+        break;
+      case b:
+        hh = (r - g) / d + 4;
+        break;
     }
     hh *= 60;
   }
   return { h: hh, s: s * 100, l: l * 100 };
 }
 function hslToHex(h: number, s: number, l: number) {
-  s /= 100; l /= 100;
+  s /= 100;
+  l /= 100;
   const k = (n: number) => (n + h / 30) % 12;
   const a = s * Math.min(l, 1 - l);
   const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-  const ch = (n: number) => Math.round(Math.max(0, Math.min(1, f(n))) * 255).toString(16).padStart(2, "0");
+  const ch = (n: number) =>
+    Math.round(Math.max(0, Math.min(1, f(n))) * 255)
+      .toString(16)
+      .padStart(2, "0");
   return `#${ch(0)}${ch(8)}${ch(4)}`;
 }
 
-
-function CloudBlob({ color, spread, intensity }: { color: string; spread: MotionValue<number>; intensity: MotionValue<number>; }) {
-  // Derive a small palette of analogous + complementary tints so the aurora
-  // contains "all emotion colors blended in proportion" while staying anchored
-  // to the day's signature hue.
+function CloudBlob({
+  color,
+  spread,
+  intensity,
+}: {
+  color: string;
+  spread: MotionValue<number>;
+  intensity: MotionValue<number>;
+}) {
   const { h, s, l } = hexToHsl(color);
   const palette = [
     color,
@@ -111,25 +156,23 @@ function CloudBlob({ color, spread, intensity }: { color: string; spread: Motion
     hslToHex((h + 180) % 360, Math.max(s - 25, 25), Math.min(l + 10, 92)),
   ];
 
-  // spread → blob size & blur, intensity → opacity
-  const baseOpacity = useTransform(intensity, (i) => 0.35 + (i / 100) * 0.45);
-  const sizeScale = useTransform(spread, (sp) => 0.85 + (sp / 100) * 0.4);
-  const blurAmt = useTransform(spread, (sp) => 28 + (sp / 100) * 22);
+  // 크기와 번짐 정도를 더 몽글몽글하게 보정
+  const baseOpacity = useTransform(intensity, (i) => 0.4 + (i / 100) * 0.4);
+  const sizeScale = useTransform(spread, (sp) => 0.9 + (sp / 100) * 0.5); // 최소 크기 상향
+  const blurAmt = useTransform(spread, (sp) => 25 + (sp / 100) * 20); // 번짐을 적절히 조절해서 경계가 너무 딱딱하지 않게
 
-  // Six blobs distributed around the square that drift slowly on independent
-  // orbits. All drift values stay well inside the container so puffs never
-  // spill past the rounded edge (the parent also clips with overflow-hidden).
+  // 6개의 조각 좌표와 크기 (중앙 집중형으로 배치하여 흩어지지 않게 함)
   const blobs = [
-    { cx: 28, cy: 32, sz: 170, dur: 26, path: { x: [0, 14, -10, 8, 0], y: [0, -10, 12, -8, 0] } },
-    { cx: 72, cy: 28, sz: 190, dur: 30, path: { x: [0, -12, 10, -6, 0], y: [0, 12, -8, 10, 0] } },
-    { cx: 65, cy: 70, sz: 200, dur: 34, path: { x: [0, 10, -14, 6, 0], y: [0, -8, 10, -12, 0] } },
-    { cx: 30, cy: 72, sz: 180, dur: 32, path: { x: [0, -8, 12, -10, 0], y: [0, 10, -10, 8, 0] } },
-    { cx: 50, cy: 48, sz: 220, dur: 38, path: { x: [0, 6, -8, 10, 0], y: [0, -6, 8, -4, 0] } },
-    { cx: 50, cy: 88, sz: 150, dur: 28, path: { x: [0, -10, 8, -6, 0], y: [0, 6, -10, 4, 0] } },
+    { cx: 35, cy: 35, sz: 180, dur: 22, path: { x: [0, 10, -5, 0], y: [0, -10, 5, 0] } },
+    { cx: 65, cy: 35, sz: 190, dur: 28, path: { x: [0, -10, 10, 0], y: [0, 5, -5, 0] } },
+    { cx: 60, cy: 65, sz: 210, dur: 32, path: { x: [0, 5, -10, 0], y: [0, -5, 10, 0] } },
+    { cx: 35, cy: 65, sz: 185, dur: 26, path: { x: [0, -5, 10, 0], y: [0, 10, -5, 0] } },
+    { cx: 50, cy: 50, sz: 230, dur: 35, path: { x: [0, 8, -8, 0], y: [0, -8, 8, 0] } },
+    { cx: 50, cy: 40, sz: 160, dur: 24, path: { x: [0, -7, 7, 0], y: [0, 7, -7, 0] } },
   ];
 
   return (
-    <div className="relative w-full h-full pointer-events-none">
+    <div className="relative w-full h-full pointer-events-none overflow-hidden bg-transparent">
       {blobs.map((b, i) => (
         <motion.div
           key={i}
@@ -139,9 +182,10 @@ function CloudBlob({ color, spread, intensity }: { color: string; spread: Motion
             top: `${b.cy}%`,
             width: useTransform(sizeScale, (k) => b.sz * k),
             height: useTransform(sizeScale, (k) => b.sz * k),
+            // 중심축을 맞추기 위한 트랜스폼
             x: useTransform(sizeScale, (k) => -(b.sz * k) / 2),
             y: useTransform(sizeScale, (k) => -(b.sz * k) / 2),
-            background: `radial-gradient(circle at 50% 50%, ${palette[i % palette.length]} 0%, ${palette[i % palette.length]}99 35%, transparent 72%)`,
+            background: `radial-gradient(circle, ${palette[i % palette.length]}ee 0%, ${palette[i % palette.length]}55 50%, transparent 80%)`,
             filter: useTransform(blurAmt, (v) => `blur(${v}px)`),
             mixBlendMode: "screen",
             opacity: baseOpacity,
@@ -150,21 +194,21 @@ function CloudBlob({ color, spread, intensity }: { color: string; spread: Motion
           transition={{ duration: b.dur, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
-      {/* gentle inner haze that very slowly orbits the whole stage */}
+
+      {/* 전체를 감싸는 은은한 광채(Haze) */}
       <motion.div
         className="absolute inset-0"
         style={{
-          background: `conic-gradient(from 0deg, ${palette[0]}33, ${palette[2]}22, ${palette[4]}22, ${palette[5]}22, ${palette[1]}33, ${palette[0]}33)`,
-          filter: "blur(40px)",
-          opacity: 0.45,
+          background: `conic-gradient(from 0deg, ${palette[0]}15, ${palette[2]}10, ${palette[4]}10, ${palette[1]}15, ${palette[0]}15)`,
+          filter: "blur(60px)",
+          opacity: 0.5,
         }}
         animate={{ rotate: 360 }}
-        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
       />
     </div>
   );
 }
-
 
 function localDateStr() {
   const d = new Date();
@@ -185,8 +229,12 @@ function AnalysisPage() {
   const [intensity, setIntensity] = useState(70);
   const spreadMV = useSpring(spread, { stiffness: 120, damping: 20 });
   const intensityMV = useSpring(intensity, { stiffness: 120, damping: 20 });
-  useEffect(() => { spreadMV.set(spread); }, [spread, spreadMV]);
-  useEffect(() => { intensityMV.set(intensity); }, [intensity, intensityMV]);
+  useEffect(() => {
+    spreadMV.set(spread);
+  }, [spread, spreadMV]);
+  useEffect(() => {
+    intensityMV.set(intensity);
+  }, [intensity, intensityMV]);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
@@ -245,9 +293,7 @@ function AnalysisPage() {
   return (
     <div className="space-y-8 animate-float-up">
       <header className="text-center pt-2">
-        <p className="text-xs text-muted-foreground tracking-wider">
-          {dateParam ? entry.entry_date : "TODAY'S MIND"}
-        </p>
+        <p className="text-xs text-muted-foreground tracking-wider">{dateParam ? entry.entry_date : "TODAY'S MIND"}</p>
         <h1 className="mt-1 text-2xl font-bold">{dateParam ? "그 날의 마음의 빛" : "오늘 마음의 빛"}</h1>
       </header>
 
@@ -265,21 +311,39 @@ function AnalysisPage() {
           </div>
 
           {/* Right vertical slider */}
-          <div className="absolute flex flex-col items-center gap-2"
-            style={{ left: SQUARE + GUTTER - 10, top: 0, height: SQUARE }}>
-            <SmoothSlider orientation="vertical" value={intensity} onChange={setIntensity} length={SQUARE} label="강도" />
+          <div
+            className="absolute flex flex-col items-center gap-2"
+            style={{ left: SQUARE + GUTTER - 10, top: 0, height: SQUARE }}
+          >
+            <SmoothSlider
+              orientation="vertical"
+              value={intensity}
+              onChange={setIntensity}
+              length={SQUARE}
+              label="강도"
+            />
           </div>
 
           {/* Bottom horizontal slider */}
-          <div className="absolute flex items-center gap-2"
-            style={{ top: SQUARE + GUTTER - 10, left: 0, width: SQUARE }}>
+          <div
+            className="absolute flex items-center gap-2"
+            style={{ top: SQUARE + GUTTER - 10, left: 0, width: SQUARE }}
+          >
             <SmoothSlider orientation="horizontal" value={spread} onChange={setSpread} length={SQUARE} label="퍼짐" />
           </div>
 
-          <span className="absolute text-[10px] text-muted-foreground tracking-wider"
-            style={{ left: SQUARE + GUTTER + 12, top: -2 }}>강도</span>
-          <span className="absolute text-[10px] text-muted-foreground tracking-wider"
-            style={{ left: -2, top: SQUARE + GUTTER + 12 }}>퍼짐 · {color}</span>
+          <span
+            className="absolute text-[10px] text-muted-foreground tracking-wider"
+            style={{ left: SQUARE + GUTTER + 12, top: -2 }}
+          >
+            강도
+          </span>
+          <span
+            className="absolute text-[10px] text-muted-foreground tracking-wider"
+            style={{ left: -2, top: SQUARE + GUTTER + 12 }}
+          >
+            퍼짐 · {color}
+          </span>
         </div>
       </div>
 
@@ -293,10 +357,14 @@ function AnalysisPage() {
             color: fg,
           }}
         >
-          <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full"
-            style={{ backgroundColor: fg, opacity: 0.08, filter: "blur(20px)" }} />
-          <div className="absolute -bottom-12 -left-8 w-44 h-44 rounded-full"
-            style={{ backgroundColor: fg, opacity: 0.06, filter: "blur(24px)" }} />
+          <div
+            className="absolute -top-10 -right-10 w-40 h-40 rounded-full"
+            style={{ backgroundColor: fg, opacity: 0.08, filter: "blur(20px)" }}
+          />
+          <div
+            className="absolute -bottom-12 -left-8 w-44 h-44 rounded-full"
+            style={{ backgroundColor: fg, opacity: 0.06, filter: "blur(24px)" }}
+          />
 
           <div className="relative h-full flex flex-col justify-between">
             <div>
@@ -315,8 +383,10 @@ function AnalysisPage() {
                   <p className="text-xs opacity-80">{loadLabel(entry.cognitive_load ?? 0)}</p>
                 </div>
                 <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: fg, opacity: 0.18 }}>
-                  <div className="h-full rounded-full"
-                    style={{ width: `${entry.cognitive_load ?? 0}%`, backgroundColor: fg, opacity: 0.9 }} />
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${entry.cognitive_load ?? 0}%`, backgroundColor: fg, opacity: 0.9 }}
+                  />
                 </div>
               </div>
 
@@ -335,8 +405,12 @@ function AnalysisPage() {
           </div>
         </div>
 
-        <button type="button" onClick={handleSave} disabled={saving}
-          className="w-full rounded-2xl bg-card border border-border py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-secondary/50 transition disabled:opacity-60">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full rounded-2xl bg-card border border-border py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-secondary/50 transition disabled:opacity-60"
+        >
           <Download className="h-4 w-4" />
           {saving ? "저장 중…" : "이미지로 저장"}
         </button>
@@ -382,7 +456,10 @@ function EmotionResultView({ result }: { result: EmotionResult }) {
       </header>
 
       {/* mind_light blob */}
-      <section className="rounded-3xl p-6 shadow-sm flex items-center gap-4" style={{ backgroundColor: color, color: fg }}>
+      <section
+        className="rounded-3xl p-6 shadow-sm flex items-center gap-4"
+        style={{ backgroundColor: color, color: fg }}
+      >
         <div
           className="h-16 w-16 rounded-full shrink-0 shadow-inner"
           style={{ backgroundColor: color, boxShadow: `0 0 32px ${color}` }}
@@ -399,12 +476,8 @@ function EmotionResultView({ result }: { result: EmotionResult }) {
         <section className="rounded-3xl bg-card border border-border p-5 shadow-sm space-y-3">
           <p className="text-xs font-semibold text-muted-foreground tracking-widest">CARD</p>
           {card.title && <p className="text-xl font-bold leading-snug">{card.title}</p>}
-          {card.one_line_summary && (
-            <p className="text-sm text-muted-foreground">{card.one_line_summary}</p>
-          )}
-          {card.summary && (
-            <p className="text-sm leading-relaxed">{card.summary}</p>
-          )}
+          {card.one_line_summary && <p className="text-sm text-muted-foreground">{card.one_line_summary}</p>}
+          {card.summary && <p className="text-sm leading-relaxed">{card.summary}</p>}
         </section>
       )}
 
@@ -427,7 +500,10 @@ function EmotionResultView({ result }: { result: EmotionResult }) {
           {emotion.cognitive_load !== undefined && (
             <div>
               <p className="text-[11px] text-muted-foreground">인지 부하</p>
-              <p className="text-2xl font-bold">{emotion.cognitive_load}{typeof emotion.cognitive_load === "number" ? "%" : ""}</p>
+              <p className="text-2xl font-bold">
+                {emotion.cognitive_load}
+                {typeof emotion.cognitive_load === "number" ? "%" : ""}
+              </p>
             </div>
           )}
         </section>
