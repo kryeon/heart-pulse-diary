@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, BarChart3, Loader2 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { TriangleBack } from "@/components/TriangleBack";
 import { useAuth } from "@/lib/auth-context";
+import { getOrCreateUserId } from "@/lib/userId";
 
 export const Route = createFileRoute("/_app/calendar")({
   head: () => ({ meta: [{ title: "달력 · Syncl\u0023r" }] }),
@@ -246,6 +247,8 @@ function StatsPage({
 
   useEffect(() => {
     if (!user?.id) return;
+    const userId = getOrCreateUserId();
+    console.log("REPORT USER ID:", userId);
     let cancelled = false;
     setLoading(true);
     setLoadingMsg("리포트를 생성하는 중이에요...");
@@ -256,7 +259,7 @@ function StatsPage({
         const r = await fetch(import.meta.env.VITE_N8N_REPORT_WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: user.id, report_type: "weekly", days: 7 }),
+          body: JSON.stringify({ user_id: userId, report_type: "weekly", days: 7 }),
         });
         if (!r.ok) throw new Error("bad");
         const d = await r.json();
@@ -277,6 +280,7 @@ function StatsPage({
     })();
     return () => { cancelled = true; };
   }, [user?.id, translate]);
+
 
   const chartData = useMemo(() => {
     return entries

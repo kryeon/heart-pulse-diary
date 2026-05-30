@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getTodayEntry, saveN8nEntry } from "@/lib/analyze.functions";
+import { getOrCreateUserId } from "@/lib/userId";
 import { setEmotionResult, type EmotionResult } from "@/lib/emotionResult";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -132,7 +133,7 @@ function InputPage() {
       const energy_level = energyLevel ?? 3;
 
       const payload = {
-        user_id: session.user.id,
+        user_id: getOrCreateUserId(),
         entry_date: localDate,
         text: content.trim(),
         image_url: uploadedImageUrl,
@@ -160,7 +161,7 @@ function InputPage() {
 
       if (data?.success === false) throw new Error("분석에 실패했어요");
 
-      const scopedEmotionResult = { ...data, user_id: session.user.id, entry_date: localDate };
+      const scopedEmotionResult = { ...data, user_id: getOrCreateUserId(), entry_date: localDate };
       setEmotionResult(scopedEmotionResult);
       try {
         localStorage.setItem("latest_entry_id", (data as any)?.entry_id ?? "");
